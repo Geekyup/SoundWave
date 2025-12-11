@@ -1,0 +1,43 @@
+.upload-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background-color: var(--color-bg-card);
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+}
+
+.tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.tab-btn:hover {
+    color: var(--color-text-primary);
+    background-color: rgba(107, 127, 247, 0.05);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--color-accent) 0%, #8b9fff 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(107, 127, 247, 0.4);
+}
+
+.tab-icon {
+    font-size: 1.3rem;
+}

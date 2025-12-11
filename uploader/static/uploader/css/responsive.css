@@ -1,0 +1,100 @@
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+
+    .upload-container {
+        margin-top: 1rem;
+    }
+
+    .upload-header h1 {
+        font-size: 2rem;
+    }
+
+    .upload-form {
+        padding: 1.5rem;
+    }
+
+    .submit-section {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .upload-tabs {
+        gap: 0.5rem;
+    }
+
+    .tab-btn {
+        padding: 0.85rem;
+        font-size: 0.9rem;
+    }
+
+    .file-input-label {
+        min-height: 120px;
+        padding: 1.5rem 1rem;
+    }
+
+    .file-input-icon {
+        font-size: 2rem;
+    }
+
+    .select-trigger {
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+        min-height: 44px;
+    }
+
+    .select-option {
+        padding: 1rem 1.2rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .select-options {
+        max-height: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .upload-form {
+        padding: 1.25rem;
+    }
+
+    .upload-tabs {
+        flex-direction: column;
+    }
+
+    .tab-btn {
+        padding: 0.75rem;
+    }
+
+    .file-input-label {
+        min-height: 100px;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+        padding: 0.9rem 1.2rem;
+    }
+
+    .select-trigger {
+        padding: 1rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .select-option {
+        padding: 0.9rem 1rem;
+    }
+
+    .select-options {
+        max-height: 300px;
+    }
+}

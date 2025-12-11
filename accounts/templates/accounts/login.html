@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Login — SoundWave</title>
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="logo"><a href="{% url 'main:index' %}" style="color:inherit; text-decoration:none">SoundWave</a></div>
+</header>
+
+<main class="auth-wrapper">
+    <div class="auth-card">
+        <h1>Login</h1>
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist">
+            {% for err in form.non_field_errors %}
+                <li>{{ err }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <ul class="errorlist">
+                            {% for err in field.errors %}
+                                <li>{{ err }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Login</button>
+                <a href="{% url 'accounts:register' %}" class="btn btn-secondary">Register</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+.card-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+}
+
+.tag {
+    background: rgba(107, 127, 247, 0.2);
+    color: var(--color-accent);
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tag.genre-tag,
+.tag.size-tag {
+    background: rgba(107, 127, 247, 0.15);
+    color: #8b9fff;
+}

@@ -1,0 +1,19 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content_title %}
+    <h1>{{ opts.verbose_name_plural|capfirst }}</h1>
+{% endblock %}
+
+{% block search %}
+    {{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'admin:uploader_sample_bulk_upload' %}" class="button" style="background-color: #417690; padding: 8px 16px; color: white; text-decoration: none; border-radius: 4px;">
+            ➕ Массовая загрузка сэмплов
+        </a>
+    </div>
+    {{ block.super }}
+{% endblock %}

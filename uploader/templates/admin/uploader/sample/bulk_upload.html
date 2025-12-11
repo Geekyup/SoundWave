@@ -1,0 +1,55 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="messagelist">
+                <div class="{% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <fieldset class="module aligned">
+            <h2>Загрузка нескольких сэмплов</h2>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="id_audio_files">{{ form.audio_files.label }}:</label>
+                    {{ form.audio_files }}
+                    <p class="help">{{ form.audio_files.help_text }}</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="id_sample_type">{{ form.sample_type.label }}:</label>
+                    {{ form.sample_type }}
+                    <p class="help">{{ form.sample_type.help_text }}</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="id_genre">{{ form.genre.label }}:</label>
+                    {{ form.genre }}
+                    <p class="help">{{ form.genre.help_text }}</p>
+                </div>
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <button type="submit" class="button default">Загрузить сэмплы</button>
+            <a href="{% url 'admin:uploader_sample_changelist' %}" class="button">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

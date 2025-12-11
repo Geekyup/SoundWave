@@ -1,0 +1,244 @@
+:root {
+    --color-bg-primary: #0f0f0f;
+    --color-bg-secondary: #1a1a1a;
+    --color-bg-card: #242424;
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #8a8a8a;
+    --color-accent: #6b7ff7;
+    --color-border: #333333;
+    --color-success: #22c55e;
+}
+
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.select-trigger {
+    width: 100%;
+    padding: 0.85rem 1.2rem;
+    padding-right: 2.5rem;
+    background-color: var(--color-bg-primary);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    font-weight: 500;
+    user-select: none;
+}
+
+.select-trigger:hover {
+    border-color: var(--color-accent);
+    background-color: rgba(107, 127, 247, 0.02);
+}
+
+.select-trigger:focus,
+.select-trigger.active {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.15);
+    background-color: rgba(107, 127, 247, 0.05);
+}
+
+.select-trigger::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7ff7' d='M1 4l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    position: absolute;
+    right: 1rem;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-trigger.active::after {
+    transform: rotate(180deg);
+}
+
+/* ========== НАПРАВЛЕНИЕ ВВЕРХ (загрузка) ========== */
+.select-up .select-options {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg-card);
+    border: 1.5px solid var(--color-accent);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    list-style: none;
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    box-shadow: 0 -8px 32px rgba(107, 127, 247, 0.25),
+                inset 0 1px 0 rgba(107, 127, 247, 0.1);
+    display: none;
+    margin: 0;
+    padding: 0;
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0.5rem;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== НАПРАВЛЕНИЕ ВНИЗ (фильтры) ========== */
+.select-down .select-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-bg-card);
+    border: 1.5px solid var(--color-accent);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    list-style: none;
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+    box-shadow: 0 8px 32px rgba(107, 127, 247, 0.25),
+                inset 0 -1px 0 rgba(107, 127, 247, 0.1);
+    display: none;
+    margin: 0;
+    padding: 0;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.select-options.show {
+    display: block;
+}
+
+.select-option {
+    padding: 0.85rem 1.2rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+    margin: 0;
+    background-color: transparent;
+}
+
+.select-option:first-child {
+    border-top: none;
+}
+
+.select-option + .select-option {
+    border-top: 1px solid rgba(107, 127, 247, 0.05);
+}
+
+.select-option:hover {
+    background: linear-gradient(90deg, rgba(107, 127, 247, 0.15) 0%, rgba(107, 127, 247, 0.08) 100%);
+    color: var(--color-accent);
+    padding-left: 1.5rem;
+}
+
+.select-option:focus {
+    background: linear-gradient(90deg, rgba(107, 127, 247, 0.2) 0%, rgba(107, 127, 247, 0.12) 100%);
+    outline: none;
+}
+
+.select-option.selected {
+    background: linear-gradient(90deg, rgba(107, 127, 247, 0.25) 0%, rgba(107, 127, 247, 0.15) 100%);
+    color: var(--color-accent);
+    font-weight: 600;
+    border-left: none;
+    padding-left: 1.2rem;
+}
+
+.select-option.selected::before {
+    content: '✓ ';
+    margin-right: 0.5rem;
+    color: var(--color-success);
+    font-weight: bold;
+}
+
+/* Scrollbar стилизация */
+.select-options::-webkit-scrollbar {
+    width: 8px;
+}
+
+.select-options::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+}
+
+.select-options::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(107, 127, 247, 0.4) 0%, rgba(107, 127, 247, 0.3) 100%);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.select-options::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(107, 127, 247, 0.6) 0%, rgba(107, 127, 247, 0.5) 100%);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .select-trigger {
+        padding: 1rem 1.2rem;
+        font-size: 1rem;
+        min-height: 44px;
+    }
+
+    .select-option {
+        padding: 1rem 1.2rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .select-options {
+        max-height: 320px;
+    }
+}
+
+@media (max-width: 480px) {
+    .select-trigger {
+        padding: 1rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .select-option {
+        padding: 0.9rem 1rem;
+    }
+
+    .select-options {
+        max-height: 300px;
+    }
+}

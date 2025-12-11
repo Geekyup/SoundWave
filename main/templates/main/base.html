@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SoundWave{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'uploader/css/custom-select.css' %}">
+  <script src="https://unpkg.com/wavesurfer.js"></script>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="header">
+      <div class="logo">
+        <a>SoundWave</a>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" placeholder="Search samples, loops...">
+      </div>
+
+      <nav class="nav-menu">
+        <a href="{% url 'main:samples' %}"
+           class="nav-link {% if current_tab == 'samples' %}active{% endif %}">
+          Samples
+        </a>
+        <a href="{% url 'main:loops' %}"
+           class="nav-link {% if current_tab == 'loops' %}active{% endif %}">
+          Loops
+        </a>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'uploader:upload_loop' %}" class="nav-link">Upload</a>
+        {% endif %}
+      </nav>
+
+      <div class="auth-buttons">
+        {% if user.is_authenticated %}
+          <div class="user-menu">
+            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+              {{ user.username }}
+            </a>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">
+              Logout
+            </a>
+          </div>
+        {% else %}
+          <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Login</a>
+          <a href="{% url 'accounts:register' %}" class="btn btn-primary">Register</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="content-wrapper" id="catalog">
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-bottom">
+        <p>&copy; 2025 SoundWave. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{% static 'uploader/js/custom-select.js' %}"></script>
+  <script src="{% static 'main/js/script.js' %}"></script>
+  <script src="{% static 'main/js/filters.js' %}"></script>
+</body>
+</html>

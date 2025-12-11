@@ -1,0 +1,250 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if current_tab == 'samples' %}
+    SoundWave - Samples
+  {% else %}
+    SoundWave - Loops
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+  {% if current_tab == 'samples' %}
+    <!-- SAMPLES TAB -->
+
+
+      <div class="filters-container">
+        <div class="filter-group">
+          <label class="filter-label" for="sample-type-filter">Sample Type</label>
+          <select id="sample-type-filter" name="sample_type">
+            <option value="">All</option>
+            {% for value, label in sample_type_choices %}
+              <option value="{{ value }}"
+                {% if current_filters.sample_type == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="sample-genre-filter">Genre</label>
+          <select id="sample-genre-filter" name="genre">
+            <option value="">All</option>
+            {% for value, label in genre_choices %}
+              <option value="{{ value }}"
+                {% if current_filters.genre == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button class="btn-reset-filters" id="reset-filters">Reset</button>
+      </div>
+
+      <div class="sample-grid samples-grid" id="samples-grid">
+        {% for sample in samples %}
+          <div
+            class="sample-card sample-square sample-item"
+            id="card-{{ sample.id }}"
+            data-card-id="{{ sample.id }}"
+            data-url="{{ sample.audio_file.url }}"
+            data-type="{{ sample.sample_type }}"
+            data-genre="{{ sample.genre }}"
+          >
+            <span class="downloads-count sample-downloads-top"
+                  id="downloads-count-{{ sample.id }}">
+              <svg class="download-icon" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span class="downloads-num">{{ sample.downloads }}</span>
+            </span>
+
+            <div class="sample-info">
+              <h3 class="sample-title">{{ sample.name }}</h3>
+              <p class="sample-type">{{ sample.get_sample_type_display }}</p>
+            </div>
+
+            <div class="sample-waveform-container">
+              <div class="sample-waveform" id="waveform-{{ sample.id }}"></div>
+            </div>
+
+            <div class="sample-controls">
+              <button
+                class="play-btn-main sample-play-btn"
+                data-card-id="{{ sample.id }}"
+                data-url="{{ sample.audio_file.url }}"
+                title="Play"
+              >
+                <svg class="play-icon" viewBox="0 0 24 24" fill="white">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+
+              <a
+                href="{% url 'main:download_sample' sample.id %}"
+                class="download-btn-bottom"
+                title="Download sample"
+              >
+                <svg class="download-icon" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+              </a>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-state">
+            <p>No uploaded samples.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% include "main/pagination.html" %}
+    </section>
+
+  {% else %}
+
+    <section class="section">
+      <header class="section-header section-header--flex">
+        <h2>Popular Tracks</h2>
+        <button class="btn btn-secondary" id="loop-filter-btn">Filter</button>
+      </header>
+
+      <div id="loop-filter-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" id="close-loop-filter">&times;</span>
+          <h3>Loop Filters</h3>
+          <form id="loop-filter-form">
+            <div class="filter-group">
+              <label for="genre-filter">Genre</label>
+              <select name="genre" id="genre-filter">
+                <option value="">All</option>
+                {% for value, label in genre_choices %}
+                  <option value="{{ value }}"
+                    {% if current_filters.genre == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="bpm-min-filter">BPM from</label>
+              <input type="number" name="bpm_min" id="bpm-min-filter" min="0"
+                     value="{{ current_filters.bpm_min|default:'' }}">
+            </div>
+            <div class="filter-group">
+              <label for="bpm-max-filter">BPM to</label>
+              <input type="number" name="bpm_max" id="bpm-max-filter" min="0"
+                     value="{{ current_filters.bpm_max|default:'' }}">
+            </div>
+            <div class="filter-group">
+              <label for="author-filter">Author</label>
+              <input type="text" name="author" id="author-filter"
+                     value="{{ current_filters.author|default:'' }}">
+            </div>
+            <div class="filter-group">
+              <label for="keywords-filter">Keywords</label>
+              <input type="text" name="keywords" id="keywords-filter"
+                     placeholder="Search tags..."
+                     value="{{ current_filters.keywords|default:'' }}">
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary">Apply</button>
+              <button type="button" class="btn btn-secondary" id="reset-loop-filters">
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="sample-grid">
+        {% for loop in loops %}
+          <div
+            class="sample-card"
+            id="card-{{ loop.id }}"
+            data-card-id="{{ loop.id }}"
+            data-url="{{ loop.audio_file.url }}"
+          >
+            <div class="card-header">
+              <div class="card-info">
+                <h3 class="card-title">{{ loop.name }}</h3>
+                <p class="card-author">{{ loop.author }}</p>
+              </div>
+              <div class="card-meta-top">
+                <span class="upload-date">
+                  {{ loop.uploaded_at|date:"d M Y H:i" }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-waveform">
+              <div class="waveform-container" id="waveform-{{ loop.id }}"></div>
+            </div>
+
+            <div class="card-controls">
+              <div class="controls-right">
+                <span class="downloads-count" id="downloads-count-{{ loop.id }}">
+                  <svg class="download-icon" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span class="downloads-num">{{ loop.downloads }}</span>
+                </span>
+              </div>
+
+              <div class="controls-actions">
+                <a
+                  href="{% url 'main:download_loop' loop.id %}"
+                  class="download-btn-rect"
+                  title="Download loop"
+                >
+                  <svg class="download-icon" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v12m0 0l-4-4m4 4l4-4"/>
+                    <line x1="4" y1="20" x2="20" y2="20"/>
+                  </svg>
+                  Download
+                </a>
+                <button
+                  class="play-btn-rect"
+                  data-card-id="{{ loop.id }}"
+                  data-url="{{ loop.audio_file.url }}"
+                >
+                  Play
+                </button>
+              </div>
+            </div>
+
+            <div class="card-tags">
+              <span class="tag bpm-tag">{{ loop.bpm }} bpm</span>
+              <span class="tag genre-tag">{{ loop.get_genre_display }}</span>
+              <span class="tag size-tag">{{ loop.get_file_size }}</span>
+            </div>
+          </div>
+        {% empty %}
+          <div class="empty-state">
+            <p>
+              No uploaded tracks.
+              <a href="{% url 'uploader:upload_loop' %}">Upload the first</a>
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% include "main/pagination.html" %}
+    </section>
+  {% endif %}
+
+{% endblock %}

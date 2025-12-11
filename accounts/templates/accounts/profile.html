@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Profile — SoundWave</title>
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+</head>
+<body>
+<header class="header">
+    <div class="logo"><a href="{% url 'main:index' %}" style="color:inherit; text-decoration:none">SoundWave</a></div>
+</header>
+
+<main class="auth-wrapper">
+    <div class="auth-card">
+        <h1>Profile</h1>
+        
+        <div class="profile-info">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Registration Date:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'main:index' %}" class="btn btn-primary">Home</a>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

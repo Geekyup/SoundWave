@@ -1,0 +1,128 @@
+@media (max-width: 1024px) {
+    .content-wrapper {
+        flex-direction: column;
+    }
+
+    .samples-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .sample-square {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        display: flex;
+    }
+
+    .search-bar {
+        max-width: 300px;
+        margin: 0 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero p {
+        font-size: 1.2rem;
+    }
+
+    .card-header {
+        flex-direction: column;
+    }
+
+    .card-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sample-card {
+        padding: 1rem;
+    }
+
+    .samples-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+
+    .sample-square {
+        padding: 1.2rem;
+    }
+
+    .sample-title {
+        font-size: 1rem;
+    }
+
+    .sample-type {
+        font-size: 0.8rem;
+    }
+
+    .sample-square .sample-play-btn {
+        width: 56px;
+        height: 56px;
+    }
+
+    .sample-square .play-icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 1rem;
+    }
+
+    .auth-buttons {
+        display: none;
+    }
+
+    .hero {
+        padding: 4rem 1rem;
+    }
+
+    .content-wrapper {
+        padding: 1rem;
+    }
+
+    .card-tags {
+        gap: 0.5rem;
+    }
+
+    .tag {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.7rem;
+    }
+
+    .samples-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 1rem;
+    }
+
+    .sample-square {
+        padding: 1rem;
+    }
+
+    .sample-square .sample-play-btn {
+        width: 50px;
+        height: 50px;
+    }
+
+    .btn-reset-filters {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-reset-filters svg {
+        width: 16px;
+        height: 16px;
+    }
+}

@@ -1,0 +1,204 @@
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 127, 247, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-bg-card);
+    border-color: var(--color-accent);
+}
+
+.user-menu .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--color-border);
+    display: inline-block;
+    color: var(--color-text-primary);
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.user-menu .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--color-accent);
+    transition: left 0.3s ease;
+    z-index: -1;
+    border-radius: 8px;
+}
+
+.user-menu .btn:hover {
+    border-color: var(--color-accent);
+    color: white;
+}
+
+.user-menu .btn:hover::before {
+    left: 0;
+}
+
+.user-menu .btn:first-child {
+    margin-right: 0.5rem;
+}
+
+.play-btn-main {
+    width: 58px;
+    height: 58px;
+    background: var(--color-accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.play-icon,
+.pause-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.download-btn-bottom {
+    width: 58px;
+    height: 58px;
+    background: rgba(107, 127, 247, 0.2);
+    border: 1px solid var(--color-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.download-btn-bottom:hover {
+    background: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.download-btn-bottom .download-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--color-accent);
+    transition: all 0.3s ease;
+}
+
+.download-btn-bottom:hover .download-icon {
+    color: white;
+}
+
+.play-btn-rect {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.play-btn-rect:hover {
+    background: #6b7ff7;
+    box-shadow: 0 8px 20px rgba(107, 127, 247, 0.4);
+}
+
+.play-icon-rect {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.pause-icon-rect {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.download-btn-rect {
+    padding: 0.5rem 1rem;
+    background: rgba(107, 127, 247, 0.1);
+    color: #e8e8e8;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-decoration: none;
+}
+
+.download-btn-rect:hover {
+    background: var(--color-accent);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 127, 247, 0.3);
+}
+
+.download-btn-rect .download-icon {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.3s ease;
+    flex-shrink: 0;
+}
+
+.download-btn-rect:hover .download-icon {
+    stroke: #fff;
+}
+
+.controls-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - SoundWave</title>
+    <link rel="stylesheet" href="{% static 'uploader/css/main.css' %}">
+</head>
+<body>
+    <div class="upload-container">
+        <div class="upload-header">
+            <h1>Upload content</h1>
+            <p>Share your music with the community</p>
+        </div>
+
+        <div class="upload-tabs">
+            <a href="?type=loop" class="tab-btn {% if upload_type == 'loop' %}active{% endif %}">
+                <span class="tab-label">Loop</span>
+            </a>
+            <a href="?type=sample" class="tab-btn {% if upload_type == 'sample' %}active{% endif %}">
+                <span class="tab-label">Sample</span>
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+                    <span class="alert-icon">
+                        {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}
+                    </span>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            <input type="hidden" name="upload_type" value="{{ upload_type }}">
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <div class="error-item">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-section file-section">
+                <div class="file-input-wrapper">
+                    {% for field in form %}
+                        {% if field.name == 'audio_file' %}
+                            {{ field }}
+                            <label for="{{ field.id_for_label }}" class="file-input-label">
+                                <div class="file-input-content">
+                                    <div class="file-input-text">
+                                        <span class="file-input-main">Choose a file or drag it here</span>
+                                        <span class="file-input-hint">MP3, WAV, OGG • max. 50MB</span>
+                                    </div>
+                                    <span class="file-input-name"></span>
+                                </div>
+                            </label>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                {% for field in form %}
+                    {% if field.name != 'audio_file' %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="required">*</span>{% endif %}
+                            </label>
+                            <div class="input-wrapper">
+                                {{ field }}
+                            </div>
+                            {% if field.errors %}
+                                <div class="field-errors">
+                                    {% for error in field.errors %}
+                                        <span class="error-text">{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small class="help-text">{{ field.help_text|safe }}</small>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="form-section submit-section">
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span class="btn-text">Upload</span>
+                </button>
+                <a href="{% url 'main:index' %}" class="btn btn-secondary btn-large">
+                    <span class="btn-text">Cancel</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'uploader/js/custom-select.js' %}"></script>
+    <script src="{% static 'uploader/js/upload.js' %}"></script>
+    <script>
+        // Automatically hide messages after 3 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+:root {
+    --color-bg-primary: #0f0f0f;
+    --color-bg-secondary: #1a1a1a;
+    --color-bg-card: #242424;
+    --color-text-primary: #e8e8e8;
+    --color-text-secondary: #8a8a8a;
+    --color-accent: #6b7ff7;
+    --color-border: #333333;
+    --color-hover: #2d2d2d;
+    --color-like: #ef4444;
+}

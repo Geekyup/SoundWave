@@ -1,0 +1,144 @@
+@import url('./variables.css');
+
+/* Filters Container */
+.filters-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 2rem;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    flex: 1;
+    min-width: 250px;
+}
+
+.filter-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sample-type-select {
+    width: 100%;
+}
+
+.btn-reset-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    background-color: rgba(107, 127, 247, 0.1);
+    border: 1.5px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-accent);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    justify-content: center;
+    align-self: flex-end; 
+}
+
+.btn-reset-filters:hover {
+    background-color: rgba(107, 127, 247, 0.2);
+    border-color: var(--color-accent);
+    transform: translateY(-15px); 
+}
+
+.btn-reset-filters:active {
+    transform: translateY(-13px); 
+}
+
+.btn-reset-filters svg {
+    width: 18px;
+    height: 18px;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--color-text-secondary);
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+}
+
+.empty-state a {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.empty-state a:hover {
+    color: #8b9fff;
+}
+
+.sample-item {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sample-item.hidden {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.5rem 0;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .btn-reset-filters {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .filters-container {
+        padding: 1rem 0;
+    }
+
+    .filter-label {
+        font-size: 0.85rem;
+    }
+
+    .btn-reset-filters {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-reset-filters svg {
+        width: 16px;
+        height: 16px;
+    }
+}
