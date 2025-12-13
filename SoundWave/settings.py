@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,11 +76,11 @@ load_dotenv()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': os.getenv('DJANGO_DB_NAME', os.getenv('DB_NAME')),
+        'USER': os.getenv('DJANGO_DB_USER', os.getenv('DB_USER')),
+        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', os.getenv('DB_PASSWORD')),
+        'HOST': os.getenv('DJANGO_DB_HOST', os.getenv('DB_HOST')),
+        'PORT': os.getenv('DJANGO_DB_PORT', os.getenv('DB_PORT', '5432')),
     }
 }
 
@@ -106,22 +107,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "static",  
+    BASE_DIR / "accounts" / "static",
+    BASE_DIR / "main" / "static",
+    BASE_DIR / "uploader" / "static",
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"  
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
-# Логирование (скрыть HTTP логи)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
