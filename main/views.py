@@ -25,6 +25,10 @@ def filter_loops(queryset, params):
         queryset = queryset.filter(author__icontains=params['author'])
     if params.get('keywords'):
         queryset = queryset.filter(keywords__icontains=params['keywords'])
+    if params.get('sort') == 'downloads':
+        queryset = queryset.order_by('-downloads', '-uploaded_at')
+    else:
+        queryset = queryset.order_by('-uploaded_at')
     return queryset
 
 @measure_time
@@ -41,13 +45,12 @@ def index(request, tab=None):
     else:
         queryset = Loop.objects.all()
         context_name = 'loops'
-        filter_keys = ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords']
+        filter_keys = ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort']  
         filter_func = filter_loops
         sample_type_choices = Sample.SAMPLE_TYPE_CHOICES
 
     qs_params = {k: request.GET.get(k, '').strip() for k in filter_keys if request.GET.get(k, '').strip()}
     queryset = filter_func(queryset, qs_params)
-    queryset = queryset.order_by('-uploaded_at')
     paginator = Paginator(queryset, items_per_page)
     page_obj = paginator.get_page(page_number)
 

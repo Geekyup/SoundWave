@@ -157,6 +157,13 @@
                      placeholder="Search tags..."
                      value="{{ current_filters.keywords|default:'' }}">
             </div>
+            <div class="filter-group">
+              <label for="sort-filter">Sort by</label>
+              <select name="sort" id="sort-filter">
+                <option value="">Newest</option>
+                <option value="downloads" {% if current_filters.sort == 'downloads' %}selected{% endif %}>Most downloaded</option>
+              </select>
+            </div>
             <div class="modal-actions">
               <button type="submit" class="btn btn-primary">Apply</button>
               <button type="button" class="btn btn-secondary" id="reset-loop-filters">
