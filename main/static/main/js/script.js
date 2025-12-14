@@ -1,239 +1,146 @@
 (function () {
-    const players = {};               // { [cardId]: WaveSurferInstance }
-    const playersMeta = {};           // { [cardId]: { isLoop: boolean, userPaused: boolean } }
+    const players = {}; // {cardId: WaveSurferInstance}
+    const playersMeta = {}; // {cardId: {player, btn, isLoop, userPaused}}
     let currentPlayer = null;
 
     const ICONS = {
         play: '<svg class="play-icon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
         pause: '<svg class="pause-icon" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>',
-        playText: 'Play',
-        pauseText: 'Pause',
-        playIconRect: '<svg class="play-icon-rect" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
-        pauseIconRect: '<svg class="pause-icon-rect" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>'
+        playRect: 'Play<svg class="play-icon-rect" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
+        pauseRect: 'Pause<svg class="pause-icon-rect" viewBox="0 0 24 24" fill="white"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>'
     };
 
-    function setButtonIcon(button, playing) {
-        if (!button) return;
-        if (button.classList.contains('play-btn-rect')) {
-            const text = playing ? ICONS.pauseText : ICONS.playText;
-            const icon = playing ? ICONS.pauseIconRect : ICONS.playIconRect;
-            button.innerHTML = text + icon;  // текст ПЕРЕД иконкой
-        } else {
-            button.innerHTML = playing ? ICONS.pause : ICONS.play;
-        }
+    const WS_OPTIONS = {
+        waveColor: 'rgba(107, 127, 247, 0.4)',
+        progressColor: 'rgba(107, 127, 247, 0.8)',
+        cursorColor: 'rgba(107, 127, 247, 1)',
+        barWidth: 3, barGap: 2, barHeight: 1.5,
+        responsive: true, normalize: true
+    };
+
+    function setButtonIcon(btn, playing) {
+        if (!btn) return;
+        btn.innerHTML = btn.classList.contains('play-btn-rect') 
+            ? (playing ? ICONS.pauseRect : ICONS.playRect)
+            : (playing ? ICONS.pause : ICONS.play);
     }
 
-    function pauseOtherPlayers(exceptPlayer) {
-        Object.values(players).forEach(p => {
-            if (p !== exceptPlayer && p.isPlaying && p.isPlaying()) {
-                const id = p.cardId;
-                if (playersMeta[id]) playersMeta[id].userPaused = false; // программная пауза
-                p.pause();
-                const otherBtn = document.querySelector(`[data-card-id="${id}"]`)?.querySelector('.play-btn-main');
-                setButtonIcon(otherBtn, false);
-                if (currentPlayer === p) currentPlayer = null;
+    function pauseOthers(exceptPlayer) {
+        Object.values(playersMeta).forEach(({player, btn}) => {
+            if (player !== exceptPlayer && player.isPlaying()) {
+                playersMeta[player.cardId].userPaused = false;
+                player.pause();
+                setButtonIcon(btn, false);
+                if (currentPlayer === player) currentPlayer = null;
             }
         });
     }
 
-    function initPlayerForCard(card) {
+    function initPlayer(card) {
         const cardId = card.dataset.cardId;
         const url = card.dataset.url;
-        const waveformElement = card.querySelector('[id^="waveform-"]');
+        const waveform = card.querySelector('[id^="waveform-"]');
+        if (!cardId || !url || !waveform) return;
 
-        if (!cardId || !url || !waveformElement) return;
-
-        const ws = WaveSurfer.create({
-            container: waveformElement,
-            waveColor: 'rgba(107, 127, 247, 0.4)',
-            progressColor: 'rgba(107, 127, 247, 0.8)',
-            cursorColor: 'rgba(107, 127, 247, 1)',
-            barWidth: 3,
-            barGap: 2,
-            barHeight: 1.5,
-            responsive: true,
-            normalize: true,
-            url: url
-        });
-
+        const ws = WaveSurfer.create({...WS_OPTIONS, container: waveform, url});
         ws.cardId = cardId;
+        const btn = card.querySelector('.play-btn-main, .play-btn-rect');
         players[cardId] = ws;
-        playersMeta[cardId] = { isLoop: false, userPaused: false };
+        playersMeta[cardId] = {player: ws, btn, isLoop: false, userPaused: false};
+        setButtonIcon(btn, false);
 
-        const cardElement = card.closest('.sample-card');
-        if (cardElement && !cardElement.classList.contains('sample-item')) {
+        const isLoop = !card.closest('.sample-card')?.classList.contains('sample-item');
+        if (isLoop) {
             playersMeta[cardId].isLoop = true;
-
             ws.on('finish', () => {
                 const meta = playersMeta[cardId];
-                // только если это loop и пользователь не поставил паузу
-                if (meta && meta.isLoop && !meta.userPaused) {
-                    // some browsers require a tiny timeout to avoid immediate re-finish
-                    ws.seekTo(0);
-                    ws.play();
+                if (meta.isLoop && !meta.userPaused) {
+                    ws.seekTo(0).play();
                 }
             });
         }
 
-        // Когда этот плеер начинает играть - остановить остальных
         ws.on('play', () => {
-            pauseOtherPlayers(ws);
+            pauseOthers(ws);
             currentPlayer = ws;
-            const btn = document.querySelector(`[data-card-id="${cardId}"]`)?.querySelector('.play-btn-main');
             setButtonIcon(btn, true);
         });
-
-        // Когда этот плеер ставят на паузу через API - обновляем кнопку
         ws.on('pause', () => {
-            const btn = document.querySelector(`[data-card-id="${cardId}"]`)?.querySelector('.play-btn-main');
             setButtonIcon(btn, false);
             if (currentPlayer === ws) currentPlayer = null;
         });
     }
 
-    function initAllPlayers() {
-        document.querySelectorAll('[data-card-id]').forEach(initPlayerForCard);
-        
-        // Инициализируем иконки на кнопках .play-btn-rect
-        document.querySelectorAll('.play-btn-rect').forEach(button => {
-            const cardId = button.dataset.cardId;
-            if (cardId && players[cardId]) {
-                setButtonIcon(button, false); // Устанавливаем Play иконку справа
-            }
-        });
-    }
-
-    function handlePlayButtonClick(button) {
-        const cardId = button.dataset.cardId;
-        const player = players[cardId];
+    function togglePlay(cardId) {
         const meta = playersMeta[cardId];
+        if (!meta?.player) return;
+        const {player, btn} = meta;
 
-        if (!player) return;
-
-        if (player.isPlaying && player.isPlaying()) {
-            // юзер нажал паузу -> помечаем как userPaused
-            if (meta) meta.userPaused = true;
+        if (player.isPlaying()) {
+            meta.userPaused = true;
             player.pause();
-            setButtonIcon(button, false);
+            setButtonIcon(btn, false);
             if (currentPlayer === player) currentPlayer = null;
         } else {
-            // юзер нажал play -> снимаем маркер userPaused и запускаем
-            if (meta) meta.userPaused = false;
+            meta.userPaused = false;
             player.play();
-            setButtonIcon(button, true);
-            currentPlayer = player;
-            // другие уже будут остановлены в обработчике 'play' этого плеера
         }
     }
 
-    function handleLikeButtonClick(button) {
-        button.classList.toggle('liked');
-        // TODO: отправить AJAX/Fetch на сервер для сохранения лайка
+    function handleDownload(btn, type) { // type: 'sample' | 'loop'
+        const card = btn.closest('.sample-card');
+        const cardId = card.dataset.cardId;
+        const key = `${type}_${cardId}`;
+        if (downloadedFiles.has(key)) return;
+
+        const a = document.createElement('a');
+        a.href = btn.href;
+        a.download = '';
+        document.body.appendChild(a).click();
+        document.body.removeChild(a);
+
+        downloadedFiles.add(key);
+        const numEl = document.getElementById(`downloads-count-${cardId}`)?.querySelector('.downloads-num');
+        if (numEl) {
+            numEl.textContent = parseInt(numEl.textContent) + 1;
+            const downloadsEl = numEl.closest('#downloads-count-' + cardId);
+            downloadsEl.style.animation = 'pulse 0.6s ease-out';
+            setTimeout(() => downloadsEl.style.animation = '', 600);
+        }
     }
 
-    function initUiListeners() {
-        // делегируем клики для play/like кнопок
-        document.addEventListener('click', (e) => {
+    const downloadedFiles = new Set();
+
+    function initAll() {
+        document.querySelectorAll('[data-card-id]').forEach(initPlayer);
+
+        document.addEventListener('click', e => {
             const playBtn = e.target.closest('.play-btn-main, .play-btn-rect');
             if (playBtn) {
                 e.stopPropagation();
-                handlePlayButtonClick(playBtn);
+                togglePlay(playBtn.dataset.cardId);
                 return;
             }
-
             const likeBtn = e.target.closest('.like-btn');
             if (likeBtn) {
                 e.stopPropagation();
-                handleLikeButtonClick(likeBtn);
+                likeBtn.classList.toggle('liked');
                 return;
+            }
+            const dlBtn = e.target.closest('.download-btn-bottom, .download-btn-rect');
+            if (dlBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDownload(dlBtn, dlBtn.classList.contains('download-btn-bottom') ? 'sample' : 'loop');
             }
         });
     }
 
-    // Инициализация при готовности DOM (скрипт обычно внизу страницы, но на всякий случай)
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            initAllPlayers();
-            initUiListeners();
-        });
+        document.addEventListener('DOMContentLoaded', initAll);
     } else {
-        initAllPlayers();
-        initUiListeners();
+        initAll();
     }
 
-    // Экспорт в глобальную область (только для отладки, не обязательно)
-    window.__swPlayers = { players, playersMeta };
-
-    // В начало IIFE добавьте отслеживание скачанных файлов
-    const downloadedFiles = new Set();
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Обработчик для кнопок скачивания samples
-        document.querySelectorAll('.download-btn-bottom').forEach(function(link) {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const cardId = this.closest('.sample-card').dataset.cardId;
-                const downloadsEl = document.getElementById(`downloads-count-${cardId}`);
-                const downloadKey = `sample_${cardId}`;
-
-                // Просто инициируем скачивание, НЕ увеличиваем счетчик на клиенте
-                const a = document.createElement('a');
-                a.href = link.href;
-                a.setAttribute('download', '');
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                // Увеличиваем счетчик только если это первый скачивание
-                if (!downloadedFiles.has(downloadKey) && downloadsEl) {
-                    downloadedFiles.add(downloadKey);
-                    const currentCount = parseInt(downloadsEl.querySelector('.downloads-num').textContent);
-                    downloadsEl.querySelector('.downloads-num').textContent = currentCount + 1;
-                    
-                    // Добавляем анимацию пульса
-                    downloadsEl.style.animation = 'pulse 0.6s ease-out';
-                    setTimeout(() => {
-                        downloadsEl.style.animation = '';
-                    }, 600);
-                }
-            });
-        });
-
-        // Обработчик для кнопок скачивания loops
-        document.querySelectorAll('.download-btn-rect').forEach(function(link) {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const cardId = this.closest('.sample-card').dataset.cardId;
-                const downloadsEl = document.getElementById(`downloads-count-${cardId}`);
-                const downloadKey = `loop_${cardId}`;
-                
-                // Инициируем скачивание
-                const a = document.createElement('a');
-                a.href = link.href;
-                a.setAttribute('download', '');
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                
-                // Обновляем счетчик только если это первое скачивание
-                if (!downloadedFiles.has(downloadKey)) {
-                    setTimeout(() => {
-                        if (downloadsEl) {
-                            downloadedFiles.add(downloadKey);
-                            const currentCount = parseInt(downloadsEl.querySelector('.downloads-num').textContent);
-                            downloadsEl.querySelector('.downloads-num').textContent = currentCount + 1;
-                            
-                            // Добавляем анимацию пульса
-                            downloadsEl.style.animation = 'pulse 0.6s ease-out';
-                            setTimeout(() => {
-                                downloadsEl.style.animation = '';
-                            }, 600);
-                        }
-                    }, 100);
-                }
-            });
-        });
-    });
+    window.__swPlayers = {players, playersMeta};
 })();
