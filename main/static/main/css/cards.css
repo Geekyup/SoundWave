@@ -1,8 +1,8 @@
 .content-wrapper {
     display: flex;
-    padding: 2rem;
-    gap: 2rem;
-    max-width: 1200px;
+    padding: var(--space-xl);
+    gap: var(--space-xl);
+    max-width: var(--container-max-width);
     margin: 0 auto;
 }
 
@@ -18,8 +18,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 2rem;
-    padding-top: 1rem;
+    margin-top: var(--space-xl);
+    padding-top: var(--space-md);
 }
 
 .section-header h2 {
@@ -31,17 +31,27 @@
 .sample-card {
     background-color: var(--color-bg-card);
     border: 1px solid var(--color-border);
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
     overflow: hidden;
-    padding: 0.85rem;
-    gap: 0.6rem;
+    padding: 0.95rem;
+    gap: 0.65rem;
     display: flex;
     flex-direction: column;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(4px);
 }
 
-.sample-card:hover {
-    box-shadow: 0 4px 12px rgba(107, 127, 247, 0.2);
+.sample-card:hover,
+.sample-card:focus-within {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+    border-color: rgba(107, 127, 247, 0.45);
+}
+
+.sample-card:hover .card-title,
+.sample-card:focus-within .card-title {
+    color: #ffffff;
 }
 
 /* Card Header */
@@ -101,7 +111,6 @@
     gap: 1rem;
     padding-bottom: 0.5rem;
     padding-right: 0.5rem;
-    transform: translateY(15px);
 }
 
 .controls-left {
@@ -134,12 +143,12 @@
 .samples-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
 }
 
 .sample-square {
-    padding: 2rem;
+    padding: var(--space-xl);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -147,26 +156,29 @@
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
+    transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(6px);
 }
 
-.sample-square:hover {
-    border-color: var(--color-border); 
-    transform: translateY(-1px) scale(1.015);
+.sample-square:hover,
+.sample-square:focus-visible {
+    border-color: rgba(107, 127, 247, 0.5);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
 }
 
 .sample-square::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background: linear-gradient(135deg, rgba(107, 127, 247, 0.1), rgba(107, 127, 247, 0.05));
-    opacity: 0;
     z-index: 0;
-    transition: opacity 0.3s;
-    opacity: 0.10;
+    transition: opacity var(--transition-base);
+    opacity: 0.1;
 }
 
 .sample-square:hover::before {
@@ -185,7 +197,7 @@
 }
 
 .sample-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--color-text-primary);
     margin-bottom: 0.5rem;
@@ -229,14 +241,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: none;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+    box-shadow: var(--shadow-soft);
 }
 
 .sample-square .sample-play-btn:hover {
     background: var(--color-accent);
     transform: scale(1.05);
-    box-shadow: none;
+    box-shadow: var(--shadow-hover);
 }
 
 .sample-square .sample-play-btn:active {
@@ -284,22 +296,22 @@
 .downloads-count:not(.sample-downloads-top) {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 10px;
     padding: 6px 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(107, 127, 247, 0.12);
     border-radius: 20px;
     font-size: 0.9rem;
+    color: var(--color-text-primary);
 }
-
 
 .downloads-count:not(.sample-downloads-top) .download-icon {
     width: 16px;
     height: 16px;
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 .downloads-count:not(.sample-downloads-top) .downloads-num {
-    font-weight: 500;
+    font-weight: 600;
     min-width: 20px;
 }
 

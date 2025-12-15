@@ -1,26 +1,38 @@
 .hero {
-    margin-top: 80px;
-    padding: 6rem 2rem;
+    margin-top: var(--header-height);
+    padding: var(--space-2xl) var(--space-xl);
     text-align: center;
-    background: var(--color-bg-primary);
+    background: linear-gradient(135deg, rgba(107, 127, 247, 0.12), transparent), var(--color-bg-primary);
     position: relative;
     overflow: hidden;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(107, 127, 247, 0.18), transparent 40%), radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.05), transparent 35%);
+    pointer-events: none;
 }
 
 .hero-content {
     position: relative;
     z-index: 1;
+    max-width: 840px;
+    margin: 0 auto;
 }
 
 .hero h1 {
-    font-size: 3.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: var(--space-md);
     color: var(--color-text-primary);
+    letter-spacing: -0.02em;
 }
 
 .hero p {
-    font-size: 1.5rem;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
     color: var(--color-text-secondary);
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-xl);
+    line-height: 1.7;
 }

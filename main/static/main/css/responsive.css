@@ -1,11 +1,12 @@
 @media (max-width: 1024px) {
     .content-wrapper {
         flex-direction: column;
+        padding: var(--space-lg);
     }
 
     .samples-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
+        gap: var(--space-lg);
     }
 
     .sample-square {
@@ -28,11 +29,11 @@
     }
 
     .hero h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 6vw, 2.5rem);
     }
 
     .hero p {
-        font-size: 1.2rem;
+        font-size: clamp(1rem, 4vw, 1.15rem);
     }
 
     .card-header {
@@ -50,7 +51,7 @@
 
     .samples-grid {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 1rem;
+        gap: var(--space-md);
     }
 
     .sample-square {
@@ -74,11 +75,19 @@
         width: 24px;
         height: 24px;
     }
+
+    .content-wrapper {
+        padding: var(--space-md);
+    }
+
+    .pagination {
+        margin: var(--space-lg) 0;
+    }
 }
 
 @media (max-width: 480px) {
     .header {
-        padding: 1rem;
+        padding: var(--space-md);
     }
 
     .auth-buttons {
@@ -86,11 +95,11 @@
     }
 
     .hero {
-        padding: 4rem 1rem;
+        padding: 3.5rem var(--space-md);
     }
 
     .content-wrapper {
-        padding: 1rem;
+        padding: var(--space-md);
     }
 
     .card-tags {
@@ -104,7 +113,7 @@
 
     .samples-grid {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 1rem;
+        gap: var(--space-md);
     }
 
     .sample-square {

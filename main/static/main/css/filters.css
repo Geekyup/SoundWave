@@ -4,9 +4,9 @@
 .filters-container {
     display: flex;
     align-items: flex-end;
-    gap: 2rem;
-    padding: 2rem 0;
-    margin-bottom: 2rem;
+    gap: var(--space-xl);
+    padding: var(--space-xl) 0;
+    margin-bottom: var(--space-xl);
     border-bottom: 1px solid var(--color-border);
     flex-wrap: wrap;
 }
@@ -38,12 +38,12 @@
     padding: 0.85rem 1.5rem;
     background-color: rgba(107, 127, 247, 0.1);
     border: 1.5px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     color: var(--color-accent);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform var(--transition-base), border-color var(--transition-base), background-color var(--transition-base);
     font-family: inherit;
     justify-content: center;
     align-self: flex-end; 
@@ -52,11 +52,11 @@
 .btn-reset-filters:hover {
     background-color: rgba(107, 127, 247, 0.2);
     border-color: var(--color-accent);
-    transform: translateY(-15px); 
+    transform: translateY(-4px); 
 }
 
 .btn-reset-filters:active {
-    transform: translateY(-13px); 
+    transform: translateY(-2px); 
 }
 
 .btn-reset-filters svg {

@@ -9,10 +9,11 @@
     background: rgba(107, 127, 247, 0.2);
     color: var(--color-accent);
     padding: 0.35rem 0.8rem;
-    border-radius: 20px;
+    border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 600;
     white-space: nowrap;
+    letter-spacing: 0.02em;
 }
 
 .tag.genre-tag,

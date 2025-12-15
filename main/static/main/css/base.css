@@ -5,9 +5,71 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-family-base);
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
-    line-height: 1.6;
+    line-height: var(--line-height-base);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+a::selection,
+::selection {
+    color: #0f0f0f;
+    background: rgba(107, 127, 247, 0.4);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 999px;
+    border: 2px solid transparent;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+a:hover {
+    color: var(--color-accent);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
 }

@@ -1,4 +1,5 @@
 :root {
+    /* Palette */
     --color-bg-primary: #0f0f0f;
     --color-bg-secondary: #1a1a1a;
     --color-bg-card: #242424;
@@ -8,4 +9,33 @@
     --color-border: #333333;
     --color-hover: #2d2d2d;
     --color-like: #ef4444;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+
+    /* Spacing scale */
+    --space-2xs: 0.25rem;
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+
+    /* Radius & shadows */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.18);
+    --shadow-hover: 0 12px 32px rgba(107, 127, 247, 0.18);
+
+    /* Typography */
+    --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --line-height-base: 1.6;
+
+    /* Motion */
+    --transition-base: 180ms ease;
+
+    /* Layout */
+    --container-max-width: 1200px;
+    --header-height: 72px;
 }
