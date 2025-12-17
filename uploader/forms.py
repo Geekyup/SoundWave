@@ -36,11 +36,15 @@ class LoopUploadForm(forms.ModelForm):
 class SampleUploadForm(forms.ModelForm):
     class Meta:
         model = Sample
-        fields = ['name', 'sample_type', 'genre', 'audio_file']
+        fields = ['name', 'author', 'sample_type', 'genre', 'audio_file']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Sample name',
+            }),
+            'author': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Your name',
             }),
             'sample_type': forms.Select(attrs={
                 'class': 'form-control'

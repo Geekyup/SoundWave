@@ -13,18 +13,215 @@
     <div class="logo"><a href="{% url 'main:index' %}" style="color:inherit; text-decoration:none">SoundWave</a></div>
 </header>
 
-<main class="auth-wrapper">
-    <div class="auth-card">
-        <h1>Profile</h1>
-        
-        <div class="profile-info">
-            <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Registration Date:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+<main class="profile-wrapper">
+    <div class="profile-hero">
+        <div class="profile-hero-bg"></div>
+        <div class="profile-hero-content">
+            <div class="profile-avatar-large">
+                <div class="avatar-circle-large">{{ user.username|first|upper }}</div>
+            </div>
+            <div class="profile-info-hero">
+                <p class="profile-verified">PROFILE</p>
+                <h1>{{ user.username }}</h1>
+                <p class="profile-meta-hero">{{ total_uploads }} track{{ total_uploads|pluralize }} • Member since {{ user.date_joined|date:"F Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-container">
+
+        <div class="stats-overview">
+            <div class="stat-item stat-item-featured">
+                <div class="stat-icon-container">
+                    <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <div class="stat-content-wrapper">
+                    <div class="stat-number">{{ total_downloads }}</div>
+                    <div class="stat-text">Downloads</div>
+                </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-icon-container">
+                    <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="stat-content-wrapper">
+                    <div class="stat-number">{{ total_uploads }}</div>
+                    <div class="stat-text">Uploads</div>
+                </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-icon-container">
+                    <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-content-wrapper">
+                    <div class="stat-number">{{ loops_count }}</div>
+                    <div class="stat-text">Loops</div>
+                </div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-icon-container">
+                    <svg class="stat-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                </div>
+                <div class="stat-content-wrapper">
+                    <div class="stat-number">{{ samples_count }}</div>
+                    <div class="stat-text">Samples</div>
+                </div>
+            </div>
         </div>
 
-        <div class="form-actions">
-            <a href="{% url 'main:index' %}" class="btn btn-primary">Home</a>
-            <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">Logout</a>
+        {% if top_loops or top_samples %}
+        <section class="profile-section">
+            <div class="section-title-wrapper">
+                <h2 class="section-title">Most Popular</h2>
+                <p class="section-description">Your most downloaded tracks</p>
+            </div>
+            {% if top_loops %}
+            <div class="tracks-container">
+                <h3 class="tracks-category">Loops</h3>
+                <div class="tracks-list">
+                    {% for loop in top_loops %}
+                    <div class="track-item" data-rank="{{ forloop.counter }}">
+                        <div class="track-rank">{{ forloop.counter }}</div>
+                        <div class="track-info">
+                            <div class="track-name">{{ loop.name }}</div>
+                            <div class="track-details">
+                                <span class="track-badge">{{ loop.get_genre_display }}</span>
+                                <span class="track-badge track-bpm">{{ loop.bpm }} BPM</span>
+                            </div>
+                        </div>
+                        <div class="track-metrics">
+                            <div class="metric-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>{{ loop.downloads }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if top_samples %}
+            <div class="tracks-container">
+                <h3 class="tracks-category">Samples</h3>
+                <div class="tracks-list">
+                    {% for sample in top_samples %}
+                    <div class="track-item" data-rank="{{ forloop.counter }}">
+                        <div class="track-rank">{{ forloop.counter }}</div>
+                        <div class="track-info">
+                            <div class="track-name">{{ sample.name }}</div>
+                            <div class="track-details">
+                                <span class="track-badge">{{ sample.get_sample_type_display }}</span>
+                                <span class="track-badge">{{ sample.get_genre_display }}</span>
+                            </div>
+                        </div>
+                        <div class="track-metrics">
+                            <div class="metric-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>{{ sample.downloads }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if recent_loops or recent_samples %}
+        <section class="profile-section">
+            <div class="section-title-wrapper">
+                <h2 class="section-title">Recent Uploads</h2>
+                <p class="section-description">Your latest additions</p>
+            </div>
+            {% if recent_loops %}
+            <div class="tracks-container">
+                <h3 class="tracks-category">Loops</h3>
+                <div class="tracks-list">
+                    {% for loop in recent_loops %}
+                    <div class="track-item">
+                        <div class="track-info">
+                            <div class="track-name">{{ loop.name }}</div>
+                            <div class="track-details">
+                                <span class="track-date">{{ loop.uploaded_at|date:"M d, Y" }}</span>
+                                <span class="track-badge">{{ loop.get_genre_display }}</span>
+                            </div>
+                        </div>
+                        <div class="track-metrics">
+                            <div class="metric-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>{{ loop.downloads }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% if recent_samples %}
+            <div class="tracks-container">
+                <h3 class="tracks-category">Samples</h3>
+                <div class="tracks-list">
+                    {% for sample in recent_samples %}
+                    <div class="track-item">
+                        <div class="track-info">
+                            <div class="track-name">{{ sample.name }}</div>
+                            <div class="track-details">
+                                <span class="track-date">{{ sample.uploaded_at|date:"M d, Y" }}</span>
+                                <span class="track-badge">{{ sample.get_sample_type_display }}</span>
+                            </div>
+                        </div>
+                        <div class="track-metrics">
+                            <div class="metric-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>{{ sample.downloads }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <div class="profile-actions">
+            <a href="{% url 'main:index' %}" class="btn-profile btn-home">Back to Home</a>
+            <a href="{% url 'accounts:logout' %}" class="btn-profile btn-logout">Logout</a>
         </div>
     </div>
 </main>

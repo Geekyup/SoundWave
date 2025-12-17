@@ -20,9 +20,8 @@ class Loop(models.Model):
     name = models.CharField(max_length=200)
     author = models.CharField(max_length=100)
     genre = models.CharField(max_length=50, choices=GENRE_CHOICES, default='other')
-    bpm = models.IntegerField(default=120, help_text='Tempo в BPM')
+    bpm = models.IntegerField(default=120, help_text='Tempo in BPM')
     audio_file = models.FileField(upload_to='loops/')
-    likes = models.IntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     downloads = models.IntegerField(default=0)
     keywords = models.CharField(max_length=300, blank=True)
@@ -56,12 +55,12 @@ class Sample(models.Model):
     ]
 
     name = models.CharField(max_length=200)
+    author = models.CharField(max_length=100, blank=True, default='')
     sample_type = models.CharField(max_length=20, choices=SAMPLE_TYPE_CHOICES)
     genre = models.CharField(max_length=50, choices=GENRE_CHOICES, default='other')
     audio_file = models.FileField(upload_to='samples/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    likes = models.IntegerField(default=0)
-    downloads = models.IntegerField(default=0)  # новое поле
+    downloads = models.IntegerField(default=0)  
 
     class Meta:
         ordering = ['-uploaded_at']
