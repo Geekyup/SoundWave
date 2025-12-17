@@ -4,3 +4,4 @@ psycopg2-binary
 dj-database-url
 whitenoise
 python-dotenv
+mutagen>=1.47.0

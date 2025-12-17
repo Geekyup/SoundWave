@@ -20,9 +20,7 @@ def upload_loop(request):
         form = FormClass(request.POST, request.FILES)
         if form.is_valid():
             instance = form.save(commit=False)
-            # Automatically set the author from the current user
-            if request.user.is_authenticated:
-                instance.author = request.user.username
+            instance.author = request.user.username
             instance.save()
             messages.success(
                 request,
@@ -34,9 +32,6 @@ def upload_loop(request):
             messages.error(request, 'Please check the form for errors.')
     else:
         form = FormClass()
-        # Pre-fill the author field if the user is authenticated
-        if request.user.is_authenticated:
-            form.fields['author'].initial = request.user.username
 
     context = {
         'form': form,

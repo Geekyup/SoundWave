@@ -57,6 +57,7 @@ class SampleAdmin(admin.ModelAdmin):
                         file_name = Path(f.name).stem  
                         Sample.objects.create(
                             name=file_name,
+                            author=request.user.username if request.user.is_authenticated else '',
                             sample_type=sample_type,
                             genre=genre,
                             audio_file=f,
