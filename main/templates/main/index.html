@@ -185,7 +185,9 @@
             <div class="card-header">
               <div class="card-info">
                 <h3 class="card-title">{{ loop.name }}</h3>
-                <p class="card-author">{{ loop.author }}</p>
+                <p class="card-author">
+                  <a href="{% url 'accounts:profile_by_username' loop.author %}" class="author-link">{{ loop.author }}</a>
+                </p>
               </div>
               <div class="card-meta-top">
                 <span class="upload-date">

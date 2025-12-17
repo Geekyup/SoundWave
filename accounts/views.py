@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Sum
 from uploader.models import Loop, Sample
@@ -32,10 +33,15 @@ def logout_view(request):
     return redirect('main:index')
 
 
-@login_required(login_url='accounts:login')
-def profile_view(request):
-    user = request.user
-    username = user.username
+def profile_view(request, username=None):
+    if username:
+        profile_user = get_object_or_404(User, username=username)
+    else:
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        profile_user = request.user
+    
+    username = profile_user.username
 
     user_loops = Loop.objects.filter(author=username)
     user_samples = Sample.objects.filter(author=username)
@@ -55,7 +61,7 @@ def profile_view(request):
     top_samples = user_samples.order_by('-downloads')[:5]
 
     context = {
-        'user': user,
+        'user': profile_user,
         'loops_count': loops_count,
         'samples_count': samples_count,
         'total_uploads': total_uploads,

@@ -82,6 +82,17 @@
     color: var(--color-text-secondary);
 }
 
+.card-author .author-link {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-base);
+}
+
+.card-author .author-link:hover {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+}
+
 .card-meta-top {
     display: flex;
     align-items: center;
