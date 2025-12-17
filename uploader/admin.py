@@ -1,39 +1,22 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django import forms
-from django.forms.widgets import FileInput
+from django.urls import path, reverse
+from django.shortcuts import render, redirect
+from django.db import transaction
 from .models import Loop, Sample
-import os
+from pathlib import Path
 
-
-class MultipleFileInput(FileInput):
-    """Custom widget for multiple file upload without Django's built-in checks."""
+class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
-    def render(self, name, value, attrs=None, renderer=None):
-        attrs = attrs or {}
-        attrs['multiple'] = True
-        return super().render(name, value, attrs, renderer)
-
-
 class BulkSampleUploadForm(forms.Form):
-    """Form for bulk sample upload."""
     audio_files = forms.FileField(
         widget=MultipleFileInput(),
         label='Select sample files',
-        help_text='Select multiple files. The name will be taken from the file name.',
-        required=False,
+        required=True
     )
-    sample_type = forms.ChoiceField(
-        choices=Sample.SAMPLE_TYPE_CHOICES,
-        label='Sample type',
-        help_text='One type for all selected files',
-    )
-    genre = forms.ChoiceField(
-        choices=Sample._meta.get_field('genre').choices,
-        label='Genre',
-        help_text='One genre for all selected files',
-    )
-
+    sample_type = forms.ChoiceField(choices=Sample.SAMPLE_TYPE_CHOICES)
+    genre = forms.ChoiceField(choices=Sample._meta.get_field('genre').choices)
 
 @admin.register(Loop)
 class LoopAdmin(admin.ModelAdmin):
@@ -41,7 +24,6 @@ class LoopAdmin(admin.ModelAdmin):
     list_filter = ('genre', 'uploaded_at')
     search_fields = ('name', 'author')
     readonly_fields = ('uploaded_at',)
-
 
 @admin.register(Sample)
 class SampleAdmin(admin.ModelAdmin):
@@ -52,76 +34,44 @@ class SampleAdmin(admin.ModelAdmin):
     change_list_template = 'admin/uploader/sample/change_list.html'
 
     def get_urls(self):
-        """Add URL for bulk upload."""
-        from django.urls import path
-
         urls = super().get_urls()
         custom_urls = [
-            path(
-                'bulk-upload/',
-                self.admin_site.admin_view(self.bulk_upload_view),
-                name='uploader_sample_bulk_upload',
-            ),
+            path('bulk-upload/', self.admin_site.admin_view(self.bulk_upload_view), 
+                 name='uploader_sample_bulk_upload'),
         ]
         return custom_urls + urls
 
     def bulk_upload_view(self, request):
-        """View handler for bulk sample upload."""
-        from django.shortcuts import render, redirect
-        from django.contrib import messages
-        from django.urls import reverse
-
-        if request.method == 'POST':
+        form = BulkSampleUploadForm(request.POST or None, request.FILES or None)
+        
+        if request.method == 'POST' and form.is_valid():
             files = request.FILES.getlist('audio_files')
-            sample_type = request.POST.get('sample_type')
-            genre = request.POST.get('genre')
-
-            if not files:
-                messages.error(request, 'Please select at least one file.')
-            elif not sample_type:
-                messages.error(request, 'Please select a sample type.')
-            elif not genre:
-                messages.error(request, 'Please select a genre.')
-            else:
-                success_count = 0
-
-                for audio_file in files:
-                    try:
-                        file_name = os.path.splitext(audio_file.name)[0]
-
+            sample_type = form.cleaned_data['sample_type']
+            genre = form.cleaned_data['genre']
+            
+            success_count = 0
+            
+            try:
+                with transaction.atomic():
+                    for f in files:
+                        file_name = Path(f.name).stem  
                         Sample.objects.create(
                             name=file_name,
                             sample_type=sample_type,
                             genre=genre,
-                            audio_file=audio_file,
+                            audio_file=f,
                         )
                         success_count += 1
-                        print(f'Uploaded: {file_name}')
-                    except Exception as e:
-                        print(f'Error: {str(e)}')
-                        messages.error(
-                            request,
-                            f'Error uploading {audio_file.name}: {str(e)}',
-                        )
-
-                if success_count > 0:
-                    messages.success(
-                        request,
-                        f'Successfully uploaded {success_count} sample(s).',
-                    )
-
+                
+                messages.success(request, f'Successfully uploaded {success_count} samples.')
                 return redirect(reverse('admin:uploader_sample_changelist'))
-
-        form = BulkSampleUploadForm()
+            
+            except Exception as e:
+                messages.error(request, f'Critical error during upload: {e}')
 
         context = {
+            **self.admin_site.each_context(request), 
             'form': form,
             'title': 'Bulk sample upload',
-            'site_header': self.admin_site.site_header,
-            'site_title': self.admin_site.site_title,
         }
-        return render(
-            request,
-            'admin/uploader/sample/bulk_upload.html',
-            context,
-        )
+        return render(request, 'admin/uploader/sample/bulk_upload.html', context)
