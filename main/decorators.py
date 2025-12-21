@@ -3,8 +3,8 @@ import functools
 
 def measure_time(func):
     """
-    Декоратор для измерения времени выполнения функции.
-    Выводит имя функции и время выполнения в консоль.
+    A decorator for measuring function execution time.
+    It prints the function name and execution time to the console.
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -12,9 +12,9 @@ def measure_time(func):
         result = func(*args, **kwargs)
         end_time = time.perf_counter()
         total_time = end_time - start_time
-        
-        print(f"Функция '{func.__name__}' выполнена за {total_time:.5f} секунд")
-        
+
+        print(f"The function '{func.__name__}' was executed in {total_time:.5f} seconds")
+
         return result
     
     return wrapper

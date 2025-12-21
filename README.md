@@ -1,56 +1,38 @@
-# SoundWave
+## Running with Docker
 
-A web application for managing musical sample libraries and loops. Create, organize, and manage your collection of sounds in one place.
+This project includes a Docker setup for local development and deployment. The provided Dockerfile uses Python 3.11-slim, installs dependencies from requirements.txt into a virtual environment, and the Compose service runs Gunicorn bound to port 8000. For local development docker-compose mounts the project into the container so code changes are picked up without rebuilding.
 
-## Features
+### Requirements
+- Docker and Docker Compose installed on your system.
+- Recommended: a `.env` file in the project root with at least:
+  - DJANGO_SECRET_KEY
+  - DEBUG (0 or 1)
+  - DJANGO_DB_ENGINE (e.g. sqlite or postgres)
+  Compose can load this file if you enable `env_file` in docker-compose.yml.
 
-- Upload and organize samples and loops
-- Categorize by genres and types
-- User account system
-- Music library management
-- Convenient interface for working with audio
+### Build and start (recommended)
+From PowerShell (Windows) or a POSIX shell, run from the project root (d:\SoundWave):
 
-## Quick Start (Docker)
-
-### 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you don't have it yet
-
-### 2. Clone the repository
-
-```sh
-git clone https://github.com/Geekyup/SoundWave.git
-cd SoundWave
+```powershell
+cd d:\SoundWave
+docker compose up --build -d
 ```
 
-### 3. Build and start the project
+This will:
+- Build the image using the provided `Dockerfile` (Python 3.11-slim)
+- Install all dependencies from `requirements.txt`
+- Start the Django development server on port **8000**
 
-```sh
-docker compose up --build
-```
+The app will be available at [http://localhost:8000](http://localhost:8000).
 
-### 4. Run migrations and collect static files
+### Configuration
+- The container runs as a non-root user for security.
+- If you need to set environment variables, create a `.env` file in the project root. Uncomment the `env_file` line in `docker-compose.yml` if you want Docker Compose to load it automatically.
+- All application code is copied into the container, excluding files/directories listed in `.dockerignore`.
 
-In a new terminal:
-
-```sh
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py collectstatic --noinput
-```
-
-### 5. Open the site
-
-Go to [http://localhost:8000/](http://localhost:8000/) in your browser.
+### Ports
+- **8000:8000** – Django development server (container → host)
 
 ---
 
-## Notes
-
-- All uploaded audio files and static files are stored in the `media/` and `staticfiles/` folders (not committed to the repository).
-- For local development without Docker, configure environment variables in `.env` (see `.env.example`).
-- To create a superuser, run:
-
-```sh
-docker compose exec web python manage.py createsuperuser
-```
-
-
-
+*For more details on environment variables or advanced configuration, refer to the `.env` file in the project root or the `docker-compose.yml` comments.*

@@ -1,37 +1,20 @@
 version: '3.9'
 
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: soundwave
-      POSTGRES_USER: soundwaveuser
-      POSTGRES_PASSWORD: soundwavepass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
   web:
     build: .
     command: gunicorn SoundWave.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
-      - ./media:/app/media
-      - static_volume:/app/static
+      - media_volume:/app/media
+      - static_volume:/app/staticfiles
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=*
-      - DJANGO_DB_HOST=db
-      - DJANGO_DB_NAME=soundwave
-      - DJANGO_DB_USER=soundwaveuser
-      - DJANGO_DB_PASSWORD=soundwavepass
+      - DJANGO_DB_ENGINE=sqlite
 
 volumes:
-  postgres_data:
   media_volume:
   static_volume:

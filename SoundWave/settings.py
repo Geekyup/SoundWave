@@ -16,13 +16,16 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# load .env early so env vars are available
+load_dotenv()
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -70,17 +73,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SoundWave.wsgi.application'
 
-# PostgreSQL Database
-load_dotenv()
+DB_ENGINE = os.getenv('DJANGO_DB_ENGINE', 'sqlite').lower()
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DJANGO_DB_NAME', os.getenv('DB_NAME')),
-        'USER': os.getenv('DJANGO_DB_USER', os.getenv('DB_USER')),
-        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', os.getenv('DB_PASSWORD')),
-        'HOST': os.getenv('DJANGO_DB_HOST', os.getenv('DB_HOST')),
-        'PORT': os.getenv('DJANGO_DB_PORT', os.getenv('DB_PORT', '5432')),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -110,7 +108,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  
     BASE_DIR / "accounts" / "static",
     BASE_DIR / "main" / "static",
     BASE_DIR / "uploader" / "static",
