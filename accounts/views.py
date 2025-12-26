@@ -4,8 +4,10 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Sum
+from .models import Profile
+from .forms import ProfileForm
 from uploader.models import Loop, Sample
+from django.db.models import Sum
 
 
 def login_view(request):
@@ -40,7 +42,10 @@ def profile_view(request, username=None):
         if not request.user.is_authenticated:
             return redirect('accounts:login')
         profile_user = request.user
-    
+
+    # гарантируем наличие Profile у просматриваемого пользователя
+    Profile.objects.get_or_create(user=profile_user)
+
     username = profile_user.username
 
     user_loops = Loop.objects.filter(author=username)
@@ -73,5 +78,19 @@ def profile_view(request, username=None):
     }
 
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required
+def profile_edit(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated.')
+            return redirect('accounts:profile', username=request.user.username)
+    else:
+        form = ProfileForm(instance=profile)
+    return render(request, 'accounts/profile_edit.html', {'form': form})
 
 

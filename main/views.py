@@ -6,6 +6,7 @@ from django.db.models import F
 from uploader.models import Loop, GENRE_CHOICES, Sample
 import os
 from .decorators import measure_time
+from django.contrib.auth.models import User
 
 def filter_samples(queryset, params):
     if params.get('sample_type'):
@@ -38,31 +39,33 @@ def index(request, tab=None):
 
     if tab == 'samples':
         queryset = Sample.objects.all()
-        context_name = 'samples'
         filter_keys = ['sample_type', 'genre']
         filter_func = filter_samples
-        sample_type_choices = Sample.SAMPLE_TYPE_CHOICES
     else:
         queryset = Loop.objects.all()
-        context_name = 'loops'
-        filter_keys = ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort']  
+        filter_keys = ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort']
         filter_func = filter_loops
-        sample_type_choices = Sample.SAMPLE_TYPE_CHOICES
 
     qs_params = {k: request.GET.get(k, '').strip() for k in filter_keys if request.GET.get(k, '').strip()}
     queryset = filter_func(queryset, qs_params)
+
     paginator = Paginator(queryset, items_per_page)
     page_obj = paginator.get_page(page_number)
+    
+    for item in page_obj:
+        try:
+            item.user = User.objects.get(username=item.author)
+        except User.DoesNotExist:
+            item.user = None
 
     context = {
-        context_name: page_obj.object_list,
+        'loops': page_obj if tab != 'samples' else [],
+        'samples': page_obj if tab == 'samples' else [],
         'page_obj': page_obj,
-        'paginator': paginator,
-        'current_tab': tab,
-        'base_query': urlencode(qs_params),
+        'current_tab': tab or 'loops',
         'current_filters': qs_params,
         'genre_choices': GENRE_CHOICES,
-        'sample_type_choices': sample_type_choices,
+        'sample_type_choices': Sample._meta.get_field('sample_type').choices,
     }
     return render(request, 'main/index.html', context)
 
@@ -75,7 +78,7 @@ def download_file(request, obj_id, model, cookie_prefix):
             filename=os.path.basename(obj.audio_file.name)
         )
     except FileNotFoundError:
-        raise Http404("Файл не найден")
+        raise Http404("File is not found")
 
     cookie_key = f'{cookie_prefix}_{obj_id}'
     if cookie_key not in request.COOKIES:

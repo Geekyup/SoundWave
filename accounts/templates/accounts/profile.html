@@ -18,7 +18,11 @@
         <div class="profile-hero-bg"></div>
         <div class="profile-hero-content">
             <div class="profile-avatar-large">
-                <div class="avatar-circle-large">{{ user.username|first|upper }}</div>
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }} avatar" class="avatar-img-large">
+                {% else %}
+                    <div class="avatar-circle-large">{{ user.username|first|upper }}</div>
+                {% endif %}
             </div>
             <div class="profile-info-hero">
                 <p class="profile-verified">PROFILE</p>
@@ -222,6 +226,9 @@
         <div class="profile-actions">
             <a href="{% url 'main:index' %}" class="btn-profile btn-home">Back to Home</a>
             <a href="{% url 'accounts:logout' %}" class="btn-profile btn-logout">Logout</a>
+            {% if request.user == user %}
+                <a href="{% url 'accounts:profile_edit' %}" class="btn-profile btn-edit">Edit Avatar</a>
+            {% endif %}
         </div>
     </div>
 </main>

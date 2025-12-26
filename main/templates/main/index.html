@@ -186,7 +186,16 @@
               <div class="card-info">
                 <h3 class="card-title">{{ loop.name }}</h3>
                 <p class="card-author">
-                  <a href="{% url 'accounts:profile_by_username' loop.author %}" class="author-link">{{ loop.author }}</a>
+                  <div class="card-author-wrapper">
+                    <div class="card-author-avatar">
+                      {% if loop.user.profile.avatar %}
+                        <img src="{{ loop.user.profile.avatar.url }}" alt="{{ loop.author }}">
+                      {% else %}
+                        {{ loop.author|first|upper }}
+                      {% endif %}
+                    </div>
+                    <a href="{% url 'accounts:profile' loop.author %}" class="author-link">{{ loop.author }}</a>
+                  </div>
                 </p>
               </div>
               <div class="card-meta-top">

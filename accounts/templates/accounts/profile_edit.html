@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Edit Profile — SoundWave</title>
+  <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/profile_edit.css' %}">
+</head>
+<body>
+  <main class="profile-edit-container">
+    <div class="edit-card">
+      <h1>Edit Profile</h1>
+
+      <div class="avatar-preview-wrapper">
+        {% if request.user.is_authenticated and request.user.profile.avatar %}
+          <img src="{{ request.user.profile.avatar.url }}" alt="{{ request.user.username }} avatar" class="avatar-preview">
+        {% else %}
+          <div class="avatar-placeholder">{{ request.user.username|first|upper }}</div>
+        {% endif %}
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="avatar-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}">Nickname</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.bio.id_for_label }}">Description</label>
+          {{ form.bio }}
+          {{ form.bio.errors }}
+        </div>
+
+        <div class="form-group">
+          <label class="file-input-label" for="id_avatar">
+            <input type="file" name="avatar" id="id_avatar" accept="image/*">
+            <span class="file-label-text">Choose Avatar</span>
+          </label>
+          {{ form.avatar.errors }}
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a href="{% url 'accounts:profile' username=request.user.username %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+
+    </div>
+  </main>
+</body>
+</html>
