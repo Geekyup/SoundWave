@@ -35,6 +35,5 @@ class ProfileForm(forms.ModelForm):
         if commit:
             profile.save()
         else:
-            # ensure profile.user is still set for later saving
             profile.user = self.instance.user
         return profile

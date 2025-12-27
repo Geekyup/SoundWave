@@ -50,9 +50,6 @@ a {
     transition: color var(--transition-base);
 }
 
-a:hover {
-    color: var(--color-accent);
-}
 
 img {
     max-width: 100%;

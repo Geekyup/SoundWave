@@ -227,7 +227,7 @@
             <a href="{% url 'main:index' %}" class="btn-profile btn-home">Back to Home</a>
             <a href="{% url 'accounts:logout' %}" class="btn-profile btn-logout">Logout</a>
             {% if request.user == user %}
-                <a href="{% url 'accounts:profile_edit' %}" class="btn-profile btn-edit">Edit Avatar</a>
+                <a href="{% url 'accounts:profile_edit' %}" class="btn-profile btn-edit">Edit profile</a>
             {% endif %}
         </div>
     </div>

@@ -7,6 +7,7 @@
     gap: var(--space-xl);
     padding: var(--space-xl) 0;
     margin-bottom: var(--space-xl);
+    margin-top: var(--header-height);
     border-bottom: 1px solid var(--color-border);
     flex-wrap: wrap;
 }
