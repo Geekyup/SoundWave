@@ -155,7 +155,6 @@ input:focus{
     background:rgba(107,127,247,0.1);
 }
 
-/* Profile Styles */
 .profile-wrapper {
     width: 100%;
     padding-top: 72px;
@@ -206,12 +205,11 @@ input:focus{
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    align-items: center; /* выровнять аватар и текст по центру */
+    align-items: center; 
     gap: 2rem;
     z-index: 1;
 }
 
-/* маленькое круглое изображение аватара (заполняет круг) */
 .avatar-img-large {
     width: 128px;
     height: 128px;
@@ -222,7 +220,6 @@ input:focus{
     box-shadow: 0 10px 34px rgba(2,6,23,0.55);
 }
 
-/* Круглый плейсхолдер, показывается когда нет user.profile.avatar */
 .avatar-circle-large{
     width: 192px;
     height: 192px;

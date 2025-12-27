@@ -1,38 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db.models import Sum
+
 from .models import Profile
 from .forms import ProfileForm
 from uploader.models import Loop, Sample
-from django.db.models import Sum
-
-
-def login_view(request):
-    form = AuthenticationForm(request, data=request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        login(request, form.get_user())
-        return redirect('main:index')
-    return render(request, 'accounts/login.html', {'form': form})
-
-
-def register_view(request):
-    form = UserCreationForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        user = form.save()
-        messages.success(
-            request,
-            'Registration successful! Please log in to your account.',
-        )
-        return redirect('accounts:login')
-    return render(request, 'accounts/register.html', {'form': form})
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('main:index')
 
 
 def profile_view(request, username=None):
@@ -43,11 +17,9 @@ def profile_view(request, username=None):
             return redirect('accounts:login')
         profile_user = request.user
 
-    # гарантируем наличие Profile у просматриваемого пользователя
-    Profile.objects.get_or_create(user=profile_user)
+    profile, _ = Profile.objects.get_or_create(user=profile_user)
 
     username = profile_user.username
-
     user_loops = Loop.objects.filter(author=username)
     user_samples = Sample.objects.filter(author=username)
 
@@ -67,6 +39,7 @@ def profile_view(request, username=None):
 
     context = {
         'user': profile_user,
+        'profile': profile,
         'loops_count': loops_count,
         'samples_count': samples_count,
         'total_uploads': total_uploads,
@@ -92,5 +65,3 @@ def profile_edit(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'accounts/profile_edit.html', {'form': form})
-
-

@@ -11,7 +11,6 @@ class ProfileForm(forms.ModelForm):
         fields = ['avatar', 'bio']
 
     def __init__(self, *args, **kwargs):
-        # instance is Profile instance
         super().__init__(*args, **kwargs)
         if self.instance and getattr(self.instance, 'user', None):
             self.fields['username'].initial = self.instance.user.username
