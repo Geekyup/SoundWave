@@ -15,7 +15,7 @@
         {% endfor %}
     {% endif %}
     
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         
         <fieldset class="module aligned">
@@ -24,7 +24,16 @@
             <div class="form-row">
                 <div class="field-box">
                     <label for="id_audio_files">{{ form.audio_files.label }}:</label>
-                    {{ form.audio_files }}
+                    {% if form.audio_files.errors %}
+                        {{ form.audio_files }}
+                        <ul class="errorlist">
+                            {% for error in form.audio_files.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {{ form.audio_files }}
+                    {% endif %}
                     <p class="help">{{ form.audio_files.help_text }}</p>
                 </div>
             </div>
@@ -32,16 +41,32 @@
             <div class="form-row">
                 <div class="field-box">
                     <label for="id_sample_type">{{ form.sample_type.label }}:</label>
-                    {{ form.sample_type }}
-                    <p class="help">{{ form.sample_type.help_text }}</p>
+                    {% if form.sample_type.errors %}
+                        {{ form.sample_type }}
+                        <ul class="errorlist">
+                            {% for error in form.sample_type.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {{ form.sample_type }}
+                    {% endif %}
                 </div>
             </div>
             
             <div class="form-row">
                 <div class="field-box">
                     <label for="id_genre">{{ form.genre.label }}:</label>
-                    {{ form.genre }}
-                    <p class="help">{{ form.genre.help_text }}</p>
+                    {% if form.genre.errors %}
+                        {{ form.genre }}
+                        <ul class="errorlist">
+                            {% for error in form.genre.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        {{ form.genre }}
+                    {% endif %}
                 </div>
             </div>
         </fieldset>

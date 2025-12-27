@@ -17,3 +17,10 @@
     </div>
     {{ block.super }}
 {% endblock %}
+
+{% block search_form %}
+    <div style="margin-bottom: 10px;">
+        <a href="{{ bulk_upload_url }}" class="button">📤 Bulk Upload Samples</a>
+    </div>
+    {{ block.super }}
+{% endblock %}
