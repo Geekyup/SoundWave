@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  {% if bulk_upload_url %}
+    <li>
+      <a href="{{ bulk_upload_url }}">Bulk upload</a>
+    </li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}
