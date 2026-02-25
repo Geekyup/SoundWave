@@ -3,11 +3,11 @@ version: '3.9'
 services:
   web:
     build: .
-    command: gunicorn SoundWave.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn --chdir backend SoundWave.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
-      - media_volume:/app/media
-      - static_volume:/app/staticfiles
+      - media_volume:/app/backend/media
+      - static_volume:/app/backend/staticfiles
     ports:
       - "8000:8000"
     environment:

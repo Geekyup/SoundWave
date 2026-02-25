@@ -1,0 +1,121 @@
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition-base), visibility var(--transition-base);
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.modal.show {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    min-width: 320px;
+    max-width: 420px;
+    width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin: auto;
+}
+
+.close {
+    position: absolute;
+    right: 1.2rem;
+    top: 1.2rem;
+    font-size: 2rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: color var(--transition-base), transform var(--transition-base);
+    z-index: 2;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.close:hover,
+.close:focus-visible {
+    color: var(--color-accent);
+    transform: scale(1.02);
+    outline: none;
+}
+
+.modal-content h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--color-accent);
+}
+
+.modal .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 0.7rem;
+}
+
+.modal .filter-group label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.1rem;
+}
+
+.modal .filter-group select,
+.modal .filter-group input[type="number"],
+.modal .filter-group input[type="text"] {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.modal .filter-group select:focus-visible,
+.modal .filter-group input:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.2);
+}
+
+.modal-actions {
+    margin-top: 1.2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 1rem 0.5rem 1rem 0.5rem;
+        min-width: unset;
+        max-width: 98vw;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+}

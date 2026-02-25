@@ -36,3 +36,13 @@ The app will be available at [http://localhost:8000](http://localhost:8000).
 ---
 
 *For more details on environment variables or advanced configuration, refer to the `.env` file in the project root or the `docker-compose.yml` comments.*
+
+## Local Backend Run
+
+Backend code now lives under `backend/` with Django apps under `backend/apps/`.
+
+```powershell
+cd d:\SoundWave
+python backend\manage.py migrate
+python backend\manage.py runserver
+```

@@ -5,3 +5,7 @@ dj-database-url
 whitenoise
 python-dotenv
 mutagen>=1.47.0
+djangorestframework
+django-filter
+django-cors-headers
+djangorestframework-simplejwt

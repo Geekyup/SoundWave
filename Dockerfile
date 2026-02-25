@@ -53,5 +53,5 @@ USER appuser
 # Expose port (Django default is 8000)
 EXPOSE 8000
 
-# Entrypoint: run Django app via manage.py (can be overridden in docker-compose)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Entrypoint: run Django app via backend/manage.py (can be overridden in docker-compose)
+CMD ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
