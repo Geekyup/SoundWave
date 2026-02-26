@@ -1,57 +1,49 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.7
 
-FROM python:3.11-slim AS base
+FROM python:3.13-slim AS builder
 
-# Builder stage: install dependencies in a venv
-FROM base AS builder
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 WORKDIR /app
 
-# Install system dependencies required for pip packages (e.g., psycopg2, Pillow, etc.)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-        gcc \
-        libffi-dev \
-        libssl-dev \
-        libjpeg-dev \
-        zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
-RUN python -m venv .venv
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python dependencies using pip with cache mount
-COPY --link requirements.txt ./
-ENV PIP_CACHE_DIR=/root/.cache/pip
-RUN --mount=type=cache,target=$PIP_CACHE_DIR \
-    .venv/bin/pip install --upgrade pip && \
-    .venv/bin/pip install -r requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip && \
+    pip install -r /app/requirements.txt
 
-# Final stage: copy app code and venv, set up non-root user
-FROM base AS final
+FROM python:3.13-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
+
 WORKDIR /app
 
-# Create non-root user and group
+# Runtime dependency for psycopg2 and similar packages.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
-# Copy virtual environment from builder
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /opt/venv /opt/venv
+COPY backend /app/backend
+COPY docker/backend-entrypoint.sh /app/docker/backend-entrypoint.sh
 
-# Copy application code (excluding .env, .git, etc. via .dockerignore)
-COPY --link . .
+RUN chmod +x /app/docker/backend-entrypoint.sh && \
+    chown -R appuser:appgroup /app
 
-# Set environment variables
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set permissions
-RUN chown -R appuser:appgroup /app
 USER appuser
 
-# Expose port (Django default is 8000)
 EXPOSE 8000
 
-# Entrypoint: run Django app via backend/manage.py (can be overridden in docker-compose)
-CMD ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["/app/docker/backend-entrypoint.sh"]

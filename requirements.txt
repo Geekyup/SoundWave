@@ -1,10 +1,10 @@
-Django>=4.2
+Django
 gunicorn
 psycopg2-binary
 dj-database-url
 whitenoise
 python-dotenv
-mutagen>=1.47.0
+mutagen
 djangorestframework
 django-filter
 django-cors-headers
