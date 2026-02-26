@@ -1,11 +1,17 @@
-:root {
-    --color-bg-primary: #0f0f0f;
-    --color-bg-secondary: #1a1a1a;
-    --color-bg-card: #242424;
-    --color-text-primary: #e8e8e8;
-    --color-text-secondary: #8a8a8a;
-    --color-accent: #6b7ff7;
-    --color-border: #333333;
-    --color-success: #22c55e;
-    --color-error: #ef4444;
+.upload-page {
+    --upload-bg: var(--color-bg-primary);
+    --upload-surface: var(--color-bg-card);
+    --upload-surface-soft: var(--color-bg-secondary);
+    --upload-border: var(--color-border);
+    --upload-border-strong: rgba(107, 127, 247, 0.28);
+    --upload-text: var(--color-text-primary);
+    --upload-text-muted: var(--color-text-secondary);
+    --upload-accent: var(--color-accent);
+    --upload-success: var(--color-success);
+    --upload-error: #ef4444;
+    --upload-shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.28);
+    --upload-shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.22);
+    --upload-radius-lg: 18px;
+    --upload-radius-md: 12px;
+    --upload-radius-sm: 10px;
 }

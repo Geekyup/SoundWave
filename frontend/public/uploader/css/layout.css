@@ -1,31 +1,71 @@
-.upload-container {
-    max-width: 700px;
+.upload-page .upload-shell {
+    max-width: 920px;
     margin: 0 auto;
-    margin-top: 2rem;
-    padding: 0 2rem 2rem;
 }
 
-.upload-header {
+.upload-page .upload-shell-single {
+    max-width: 620px;
+}
+
+.upload-page .upload-container {
+    background-color: var(--upload-surface);
+    border: 1px solid var(--upload-border);
+    border-radius: var(--upload-radius-lg);
+    box-shadow: var(--upload-shadow-sm);
+    padding: clamp(16px, 2.4vw, 30px);
+}
+
+.upload-page .upload-guest {
     text-align: center;
-    margin-bottom: 2.5rem;
 }
 
-.upload-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--color-text-primary);
+.upload-page .upload-guest .btn {
+    max-width: 220px;
+    margin: 0 auto;
 }
 
-.upload-header p {
-    color: var(--color-text-secondary);
-    font-size: 1rem;
+.upload-page .upload-header {
+    margin-bottom: 1rem;
 }
 
-.form-section {
-    margin-bottom: 2rem;
+.upload-page .upload-header h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 1.2vw + 1.2rem, 2.25rem);
+    letter-spacing: -0.02em;
 }
 
-.form-section:last-child {
+.upload-page .upload-header p {
+    margin: 8px 0 0;
+    color: var(--upload-text-muted);
+    font-size: 0.96rem;
+}
+
+.upload-page .upload-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 16px;
+}
+
+.upload-page .upload-meta-item {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--upload-border);
+    color: var(--upload-text-muted);
+    font-size: 0.8rem;
+    background: var(--upload-surface-soft);
+}
+
+.upload-page .upload-mode-hint {
+    margin: 10px 0 16px;
+    color: var(--upload-text-muted);
+    font-size: 0.9rem;
+}
+
+.upload-page .form-section {
+    margin-bottom: 1.4rem;
+}
+
+.upload-page .form-section:last-child {
     margin-bottom: 0;
 }

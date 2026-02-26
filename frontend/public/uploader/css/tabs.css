@@ -1,43 +1,37 @@
-.upload-tabs {
+.upload-page .upload-tabs {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    background-color: var(--color-bg-card);
-    padding: 0.5rem;
+    gap: 8px;
+    margin: 0;
+    background: var(--upload-surface-soft);
+    padding: 6px;
     border-radius: 12px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--upload-border);
 }
 
-.tab-btn {
+.upload-page .tab-btn {
     flex: 1;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
+    min-height: 42px;
+    padding: 0.75rem 1rem;
     background: transparent;
     border: none;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    border-radius: 8px;
+    border-radius: 9px;
+    color: var(--upload-text-muted);
     font-weight: 600;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-    white-space: nowrap;
-    text-decoration: none;
+    font-size: 0.94rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.tab-btn:hover {
-    color: var(--color-text-primary);
-    background-color: rgba(107, 127, 247, 0.05);
+.upload-page .tab-btn:hover {
+    color: var(--upload-text);
+    background: rgba(107, 127, 247, 0.1);
 }
 
-.tab-btn.active {
-    background: linear-gradient(135deg, var(--color-accent) 0%, #8b9fff 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(107, 127, 247, 0.4);
-}
-
-.tab-icon {
-    font-size: 1.3rem;
+.upload-page .tab-btn.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--upload-accent), #7f91ff);
+    box-shadow: 0 4px 12px rgba(107, 127, 247, 0.3);
 }

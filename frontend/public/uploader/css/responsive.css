@@ -1,97 +1,54 @@
 @media (max-width: 768px) {
-    .upload-container {
-        margin-top: 1rem;
-        padding: 0 1rem 1.5rem;
+    .upload-page {
+        padding: 14px;
     }
 
-    .upload-header h1 {
-        font-size: 2rem;
+    .upload-page .upload-container {
+        padding: 18px;
     }
 
-    .upload-form {
-        padding: 1.5rem;
+    .upload-page .upload-form {
+        padding: 14px;
     }
 
-    .submit-section {
+    .upload-page .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .upload-page .submit-section {
         flex-direction: column;
     }
 
-    .btn {
-        width: 100%;
+    .upload-page .upload-tabs {
+        gap: 6px;
     }
 
-    .upload-tabs {
-        gap: 0.5rem;
-    }
-
-    .tab-btn {
-        padding: 0.85rem;
-        font-size: 0.9rem;
-    }
-
-    .file-input-label {
+    .upload-page .file-input-label {
         min-height: 120px;
-        padding: 1.5rem 1rem;
+        padding: 14px;
     }
 
-    .file-input-icon {
-        font-size: 2rem;
-    }
-
-    .select-trigger {
-        padding: 1rem 1.2rem;
-        font-size: 1rem;
-        min-height: 44px;
-    }
-
-    .select-option {
-        padding: 1rem 1.2rem;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-    }
-
-    .select-options {
-        max-height: 320px;
+    .upload-page .select-options {
+        max-height: 260px;
     }
 }
 
 @media (max-width: 480px) {
-    .upload-header h1 {
-        font-size: 1.75rem;
+    .upload-page .upload-container {
+        padding: 14px;
+        border-radius: 14px;
     }
 
-    .upload-form {
-        padding: 1.25rem;
+    .upload-page .upload-form {
+        padding: 12px;
     }
 
-    .upload-tabs {
+    .upload-page .upload-tabs {
         flex-direction: column;
     }
 
-    .tab-btn {
-        padding: 0.75rem;
-    }
-
-    .file-input-label {
-        min-height: 100px;
-    }
-
-    .btn {
-        font-size: 0.95rem;
-        padding: 0.9rem 1.2rem;
-    }
-
-    .select-trigger {
-        padding: 1rem 1rem;
-        font-size: 0.95rem;
-    }
-
-    .select-option {
-        padding: 0.9rem 1rem;
-    }
-
-    .select-options {
-        max-height: 300px;
+    .upload-page .upload-meta-item {
+        width: 100%;
+        text-align: center;
     }
 }

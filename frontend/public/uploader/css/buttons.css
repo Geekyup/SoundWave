@@ -1,53 +1,47 @@
-.submit-section {
+.upload-page .submit-section {
     display: flex;
-    gap: 1rem;
+    gap: 10px;
 }
 
-.btn {
+.upload-page .btn {
     flex: 1;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
+    min-height: 46px;
+    padding: 0.8rem 1.25rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-size: 0.93rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
-    text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
-    font-size: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-large {
-    padding: 1.1rem 2rem;
+.upload-page .btn-large {
+    min-height: 48px;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, var(--color-accent) 0%, #8b9fff 100%);
-    color: white;
-    box-shadow: 0 4px 16px rgba(107, 127, 247, 0.3);
+.upload-page .btn-primary {
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--upload-accent), #7f91ff);
+    border-color: rgba(107, 127, 247, 0.72);
+    box-shadow: 0 6px 16px rgba(107, 127, 247, 0.28);
 }
 
-.btn-primary:hover {
-    box-shadow: 0 8px 24px rgba(107, 127, 247, 0.4);
+.upload-page .btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(107, 127, 247, 0.35);
+    filter: brightness(1.03);
 }
 
-.btn-primary:active {
-    transform: scale(0.98);
+.upload-page .btn-secondary {
+    background: var(--upload-surface-soft);
+    border-color: var(--upload-border);
+    color: var(--upload-text);
 }
 
-.btn-secondary {
-    background: transparent;
-    border: 1.5px solid var(--color-border);
-    color: var(--color-text-primary);
-}
-
-.btn-secondary:hover {
-    background-color: rgba(107, 127, 247, 0.08);
-    border-color: var(--color-accent);
-}
-
-.btn-icon {
-    font-size: 1.1rem;
+.upload-page .btn-secondary:hover {
+    border-color: var(--upload-accent);
+    background: rgba(107, 127, 247, 0.12);
 }

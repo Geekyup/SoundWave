@@ -1,123 +1,118 @@
-.upload-form {
-    background-color: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+.upload-page .upload-form {
+    border: 1px solid var(--upload-border);
     border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: clamp(16px, 2vw, 24px);
+    background: var(--upload-surface-soft);
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+.upload-page .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 14px;
 }
 
-.form-group:last-child {
-    margin-bottom: 0;
+.upload-page .form-group {
+    margin: 0;
 }
 
-.form-label {
+.upload-page .form-group-full {
+    grid-column: 1 / -1;
+}
+
+.upload-page .form-label {
     display: block;
-    margin-bottom: 0.6rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    font-size: 0.95rem;
+    margin-bottom: 7px;
+    color: var(--upload-text);
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
 }
 
-.required {
-    color: var(--color-error);
-    margin-left: 0.3rem;
+.upload-page .required {
+    color: var(--upload-error);
+    margin-left: 4px;
 }
 
-.input-wrapper {
+.upload-page .input-wrapper {
     position: relative;
 }
 
-input[type="text"],
-input[type="number"],
-select {
+.upload-page .upload-form input[type="text"],
+.upload-page .upload-form input[type="number"] {
     width: 100%;
-    padding: 0.85rem 1.2rem;
-    background-color: var(--color-bg-primary);
-    border: 1.5px solid var(--color-border);
-    border-radius: 8px;
-    color: var(--color-text-primary);
-    font-size: 0.95rem;
-    font-family: inherit;
-    transition: all 0.3s ease;
+    min-height: 44px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--upload-border);
+    background: var(--upload-bg);
+    color: var(--upload-text);
+    font-size: 0.94rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-input[type="text"]::placeholder,
-input[type="number"]::placeholder {
-    color: var(--color-text-secondary);
+.upload-page .upload-form input[type="text"]::placeholder,
+.upload-page .upload-form input[type="number"]::placeholder {
+    color: var(--upload-text-muted);
 }
 
-input[type="text"]:focus,
-input[type="number"]:focus,
-select:focus {
+.upload-page .upload-form input[type="text"]:focus,
+.upload-page .upload-form input[type="number"]:focus {
     outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.1);
-    background-color: rgba(107, 127, 247, 0.03);
+    border-color: var(--upload-accent);
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.18);
+    background: var(--upload-surface);
 }
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
+.upload-page .upload-form input[type="number"]::-webkit-outer-spin-button,
+.upload-page .upload-form input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7ff7' d='M1 4l5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
-    cursor: pointer;
+.upload-page .upload-form input[type="number"] {
+    -moz-appearance: textfield;
 }
 
-select option {
-    background-color: var(--color-bg-secondary);
-    color: var(--color-text-primary);
-    padding: 0.75rem 1rem;
-    border: none;
+.upload-page .select-trigger {
+    min-height: 44px;
+    border-color: var(--upload-border);
+    border-radius: 10px;
+    background: var(--upload-bg);
+    color: var(--upload-text);
+    font-size: 0.94rem;
 }
 
-select option:checked {
-    background: linear-gradient(135deg, var(--color-accent) 0%, #8b9fff 100%);
-    color: white;
+.upload-page .select-trigger:hover {
+    border-color: var(--upload-border-strong);
+    background: var(--upload-surface);
 }
 
-select option:hover {
-    background-color: var(--color-bg-card);
+.upload-page .select-trigger:focus,
+.upload-page .select-trigger.active {
+    border-color: var(--upload-accent);
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.18);
+    background: var(--upload-surface);
 }
 
-select:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.upload-page .select-up .select-options,
+.upload-page .select-down .select-options {
+    border-color: var(--upload-border-strong);
+    background: var(--upload-surface);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
-.field-errors {
-    margin-top: 0.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+.upload-page .select-option {
+    font-size: 0.92rem;
+    color: var(--upload-text);
 }
 
-.error-text {
-    color: #fca5a5;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
+.upload-page .select-option + .select-option {
+    border-top-color: rgba(255, 255, 255, 0.06);
 }
 
-.error-text::before {
-    content: '⚠';
-    font-size: 0.8rem;
-}
-
-.help-text {
-    display: block;
-    margin-top: 0.4rem;
-    color: var(--color-text-secondary);
-    font-size: 0.85rem;
+.upload-page .select-option:hover {
+    color: var(--upload-text);
+    background: rgba(107, 127, 247, 0.14);
+    padding-left: 1.2rem;
 }
