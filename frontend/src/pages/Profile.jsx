@@ -23,6 +23,7 @@ export default function Profile() {
 
   const isAuth = Boolean(getAccessToken());
   const profileUsername = useMemo(() => username || me?.username, [username, me]);
+  const isOwnProfile = !username || username === me?.username;
 
   useEffect(() => {
     if (!isAuth) {
@@ -95,6 +96,10 @@ export default function Profile() {
 
   const totalUploads = counts.loops + counts.samples;
   const totalDownloads = sumDownloads(loops) + sumDownloads(samples);
+  const hasActivityData = Boolean(loops.length || samples.length);
+  const displayUsername = profileUsername || 'User';
+  const heroAvatarUrl = isOwnProfile ? me?.avatar_url : '';
+  const profileLabel = isOwnProfile ? 'PROFILE' : 'PUBLIC PROFILE';
 
   return (
     <div>
@@ -109,17 +114,17 @@ export default function Profile() {
           <div className="profile-hero-bg"></div>
           <div className="profile-hero-content">
             <div className="profile-avatar-large">
-              {me?.avatar_url ? (
-                <img src={me.avatar_url} alt={`${profileUsername} avatar`} className="avatar-img-large" />
+              {heroAvatarUrl ? (
+                <img src={heroAvatarUrl} alt={`${displayUsername} avatar`} className="avatar-img-large" />
               ) : (
-                <div className="avatar-circle-large">{profileUsername?.charAt(0)?.toUpperCase() || 'U'}</div>
+                <div className="avatar-circle-large">{displayUsername.charAt(0).toUpperCase() || 'U'}</div>
               )}
             </div>
             <div className="profile-info-hero">
-              <p className="profile-verified">PROFILE</p>
-              <h1>{profileUsername || 'User'}</h1>
+              <p className="profile-verified">{profileLabel}</p>
+              <h1>{displayUsername}</h1>
               <p className="profile-meta-hero">
-                {totalUploads} track{totalUploads === 1 ? '' : 's'} • Member since —
+                {totalUploads} track{totalUploads === 1 ? '' : 's'} • {isOwnProfile ? 'Manage your profile' : 'Public catalog'}
               </p>
             </div>
           </div>
@@ -183,17 +188,46 @@ export default function Profile() {
             </div>
           </div>
 
+          {!loading && !isOwnProfile ? (
+            <p className="profile-context-note">
+              You are viewing public profile data.
+            </p>
+          ) : null}
+
           {loading ? (
             <div className="empty-state">
               <p>Loading profile...</p>
             </div>
           ) : null}
 
+          {!loading && !hasActivityData ? (
+            <section className="profile-empty-card">
+              <h2>Profile is empty</h2>
+              <p>
+                {isOwnProfile
+                  ? 'You have no uploads yet. Add your first loop or sample to fill this page.'
+                  : 'This user has no public uploads yet.'}
+              </p>
+              <div className="profile-empty-actions">
+                {isOwnProfile ? (
+                  <>
+                    <a href="/upload" className="btn-profile btn-home">Upload first track</a>
+                    <a href="/profile/edit" className="btn-profile btn-logout">Edit profile</a>
+                  </>
+                ) : (
+                  <a href="/" className="btn-profile btn-home">Back to Home</a>
+                )}
+              </div>
+            </section>
+          ) : null}
+
           {topLoops.length || topSamples.length ? (
             <section className="profile-section">
               <div className="section-title-wrapper">
                 <h2 className="section-title">Most Popular</h2>
-                <p className="section-description">Your most downloaded tracks</p>
+                <p className="section-description">
+                  {isOwnProfile ? 'Your most downloaded tracks' : 'Most downloaded tracks'}
+                </p>
               </div>
               {topLoops.length ? (
                 <div className="tracks-container">
@@ -261,7 +295,9 @@ export default function Profile() {
             <section className="profile-section">
               <div className="section-title-wrapper">
                 <h2 className="section-title">Recent Uploads</h2>
-                <p className="section-description">Your latest additions</p>
+                <p className="section-description">
+                  {isOwnProfile ? 'Your latest additions' : 'Latest additions'}
+                </p>
               </div>
               {loops.length ? (
                 <div className="tracks-container">
@@ -325,17 +361,23 @@ export default function Profile() {
 
           <div className="profile-actions">
             <a href="/" className="btn-profile btn-home">Back to Home</a>
-            <button
-              type="button"
-              className="btn-profile btn-logout"
-              onClick={() => {
-                logout();
-                window.location.href = '/';
-              }}
-            >
-              Logout
-            </button>
-            <a href="/profile/edit" className="btn-profile btn-edit">Edit profile</a>
+            {isOwnProfile ? (
+              <>
+                <button
+                  type="button"
+                  className="btn-profile btn-logout"
+                  onClick={() => {
+                    logout();
+                    window.location.href = '/';
+                  }}
+                >
+                  Logout
+                </button>
+                <a href="/profile/edit" className="btn-profile btn-edit">Edit profile</a>
+              </>
+            ) : (
+              <a href="/profile" className="btn-profile btn-edit">My profile</a>
+            )}
           </div>
         </div>
       </main>

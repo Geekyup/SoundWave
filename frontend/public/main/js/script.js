@@ -1,6 +1,6 @@
 (function () {
     const players = {}; // {cardId: WaveSurferInstance}
-    const playersMeta = {}; // {cardId: {player, btn, isLoop, userPaused}}
+    const playersMeta = {}; // {cardId: {player, btn, waveformEl, isLoop, userPaused}}
     let currentPlayer = null;
 
     const ICONS = {
@@ -36,18 +36,58 @@
         });
     }
 
+    function destroyPlayer(cardId) {
+        const meta = playersMeta[cardId];
+        if (!meta) return;
+
+        if (currentPlayer === meta.player) {
+            currentPlayer = null;
+        }
+
+        try {
+            meta.player.destroy();
+        } catch (_) {
+            // Ignore destroy errors from already-disposed instances.
+        }
+
+        delete players[cardId];
+        delete playersMeta[cardId];
+    }
+
+    function cleanupStalePlayers() {
+        const activeCardIds = new Set(
+            Array.from(document.querySelectorAll('[data-card-id]'))
+                .map(card => card.dataset.cardId)
+                .filter(Boolean)
+        );
+
+        Object.keys(playersMeta).forEach(cardId => {
+            if (!activeCardIds.has(cardId)) {
+                destroyPlayer(cardId);
+            }
+        });
+    }
+
     function initPlayer(card) {
         const cardId = card.dataset.cardId;
         const url = card.dataset.url;
         const waveform = card.querySelector('[id^="waveform-"]');
         if (!cardId || !url || !waveform) return;
-        if (players[cardId]) return;
+
+        // React can remount cards with the same id after filtering/pagination.
+        // Recreate player if waveform container node changed.
+        if (playersMeta[cardId]) {
+            if (playersMeta[cardId].waveformEl === waveform) {
+                return;
+            }
+            destroyPlayer(cardId);
+        }
 
         const ws = WaveSurfer.create({...WS_OPTIONS, container: waveform, url});
         ws.cardId = cardId;
         const btn = card.querySelector('.play-btn-main, .play-btn-rect');
         players[cardId] = ws;
-        playersMeta[cardId] = {player: ws, btn, isLoop: false, userPaused: false};
+        playersMeta[cardId] = {player: ws, btn, waveformEl: waveform, isLoop: false, userPaused: false};
         setButtonIcon(btn, false);
 
         const isLoop = !card.closest('.sample-card')?.classList.contains('sample-item');
@@ -115,6 +155,7 @@
     let listenersBound = false;
 
     function initAll() {
+        cleanupStalePlayers();
         document.querySelectorAll('[data-card-id]').forEach(initPlayer);
 
         if (listenersBound) return;

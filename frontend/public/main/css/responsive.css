@@ -10,7 +10,7 @@
     }
 
     .sample-square {
-        padding: 1.5rem;
+        --sample-square-pad: 1.5rem;
     }
 }
 
@@ -45,6 +45,11 @@
         align-items: flex-start;
     }
 
+    .sample-card:not(.sample-square) .controls-actions {
+        align-self: stretch;
+        transform: none;
+    }
+
     .sample-card {
         padding: 1rem;
     }
@@ -55,7 +60,7 @@
     }
 
     .sample-square {
-        padding: 1.2rem;
+        --sample-square-pad: 1.2rem;
     }
 
     .sample-title {
@@ -66,14 +71,14 @@
         font-size: 0.8rem;
     }
 
-    .sample-square .sample-play-btn {
-        width: 56px;
-        height: 56px;
+    .sample-author-link,
+    .sample-author-muted {
+        font-size: 0.72rem;
     }
 
-    .sample-square .play-icon {
-        width: 24px;
-        height: 24px;
+    .sample-controls .sample-play-btn,
+    .sample-controls .download-btn-bottom {
+        min-height: 50px;
     }
 
     .content-wrapper {
@@ -117,12 +122,12 @@
     }
 
     .sample-square {
-        padding: 1rem;
+        --sample-square-pad: 1rem;
     }
 
-    .sample-square .sample-play-btn {
-        width: 50px;
-        height: 50px;
+    .sample-controls .sample-play-btn,
+    .sample-controls .download-btn-bottom {
+        min-height: 48px;
     }
 
     .btn-reset-filters {

@@ -2,16 +2,16 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.58);
     display: none;
     align-items: center;
     justify-content: center;
-    transition: opacity var(--transition-base), visibility var(--transition-base);
     width: 100%;
     height: 100%;
     opacity: 0;
     visibility: hidden;
-    backdrop-filter: blur(6px);
+    transition: opacity var(--transition-base), visibility var(--transition-base);
+    backdrop-filter: blur(4px);
 }
 
 .modal.show {
@@ -23,99 +23,171 @@
 .modal-content {
     background: var(--color-bg-card);
     color: var(--color-text-primary);
-    padding: 2rem 1.5rem 1.5rem 1.5rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    min-width: 320px;
-    max-width: 420px;
-    width: 95vw;
+    border: 1px solid rgba(107, 127, 247, 0.24);
+    border-radius: 14px;
+    width: min(440px, 95vw);
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-soft);
+    padding: 1.3rem 1.2rem 1.2rem;
+    box-shadow: 0 20px 46px rgba(0, 0, 0, 0.35);
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-    margin: auto;
 }
 
-.close {
+#loop-filter-btn {
+    font-size: 0.9rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    box-shadow: none;
+}
+
+#loop-filter-btn:hover {
+    border-color: rgba(107, 127, 247, 0.45);
+    background: rgba(107, 127, 247, 0.12);
+}
+
+.modal-close-btn {
     position: absolute;
-    right: 1.2rem;
-    top: 1.2rem;
-    font-size: 2rem;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: color var(--transition-base), transform var(--transition-base);
-    z-index: 2;
-    background: none;
-    border: none;
+    right: 0.9rem;
+    top: 0.9rem;
+    width: 32px;
+    height: 32px;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 0;
+    line-height: 0;
+    cursor: pointer;
+    transition: color var(--transition-base), border-color var(--transition-base), background var(--transition-base);
 }
 
-.close:hover,
-.close:focus-visible {
-    color: var(--color-accent);
-    transform: scale(1.02);
+.modal-close-icon {
+    display: block;
+    font-size: 1.42rem;
+    line-height: 1;
+    transform: translateY(-1px);
+}
+
+.modal-close-btn:hover,
+.modal-close-btn:focus-visible {
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+    background: var(--color-bg-secondary);
     outline: none;
 }
 
 .modal-content h3 {
-    font-size: 1.35rem;
+    margin: 0 0 0.8rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: var(--color-accent);
+    color: var(--color-text-primary);
 }
 
-.modal .filter-group {
+#loop-filter-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+#loop-filter-form .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    margin-bottom: 0.7rem;
+    gap: 0.35rem;
+    margin: 0;
 }
 
-.modal .filter-group label {
-    font-size: 1rem;
-    font-weight: 500;
+#loop-filter-form .filter-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--color-text-secondary);
-    margin-bottom: 0.1rem;
 }
 
-.modal .filter-group select,
-.modal .filter-group input[type="number"],
-.modal .filter-group input[type="text"] {
-    padding: 0.6rem 0.8rem;
-    border-radius: var(--radius-sm);
+#loop-filter-form input[type="number"],
+#loop-filter-form input[type="text"] {
+    min-height: 42px;
+    padding: 0.58rem 0.8rem;
+    border-radius: 8px;
     border: 1px solid var(--color-border);
-    background: var(--color-bg-primary);
+    background: var(--color-bg-secondary);
     color: var(--color-text-primary);
-    font-size: 1rem;
+    font-size: 0.92rem;
     outline: none;
-    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
 }
 
-.modal .filter-group select:focus-visible,
-.modal .filter-group input:focus-visible {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.2);
+
+
+#loop-filter-form input[type="number"]::-webkit-outer-spin-button,
+#loop-filter-form input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#loop-filter-form input[type="number"]:focus-visible,
+#loop-filter-form input[type="text"]:focus-visible {
+    border-color: rgba(107, 127, 247, 0.5);
+    box-shadow: none;
+    background: rgba(107, 127, 247, 0.08);
 }
 
 .modal-actions {
-    margin-top: 1.2rem;
+    margin-top: 0.25rem;
     display: flex;
-    gap: 1rem;
+    gap: 0.7rem;
     justify-content: flex-end;
+}
+
+.loop-filter-btn {
+    min-width: 108px;
+    min-height: 40px;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base), color var(--transition-base);
+}
+
+.loop-filter-btn-primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #ffffff;
+}
+
+.loop-filter-btn-primary:hover {
+    box-shadow: none;
+    filter: brightness(1.04);
+}
+
+.loop-filter-btn-secondary {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.loop-filter-btn-secondary:hover {
+    border-color: rgba(107, 127, 247, 0.45);
+    background: rgba(107, 127, 247, 0.12);
 }
 
 @media (max-width: 600px) {
     .modal-content {
-        padding: 1rem 0.5rem 1rem 0.5rem;
-        min-width: unset;
-        max-width: 98vw;
+        width: min(460px, 96vw);
+        padding: 1rem;
     }
 
     .modal-actions {
         flex-direction: column;
-        gap: 0.7rem;
+    }
+
+    .loop-filter-btn {
+        width: 100%;
     }
 }

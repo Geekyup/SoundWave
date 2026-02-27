@@ -275,10 +275,10 @@ export default function Upload() {
             </div>
 
             <div className="form-section submit-section">
-              <button type="submit" className="btn btn-primary btn-large">
+              <button type="submit" className="upload-action-btn upload-action-btn-primary">
                 <span className="btn-text">Upload</span>
               </button>
-              <a href="/" className="btn btn-secondary btn-large">
+              <a href="/" className="upload-action-btn upload-action-btn-secondary">
                 <span className="btn-text">Cancel</span>
               </a>
             </div>

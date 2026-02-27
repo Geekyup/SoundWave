@@ -188,7 +188,7 @@ input:focus{
         radial-gradient(circle at 80% 70%, rgba(139, 154, 255, 0.2) 0%, transparent 50%),
         radial-gradient(circle at 50% 50%, rgba(107, 127, 247, 0.1) 0%, transparent 70%);
     pointer-events: none;
-    animation: pulse 8s ease-in-out infinite;
+    animation: pulse 14s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -311,7 +311,7 @@ input:focus{
 
 .stat-item:hover {
     background: rgba(107, 127, 247, 0.05);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 
@@ -383,6 +383,41 @@ input:focus{
 
 .profile-section {
     margin-bottom: 4rem;
+}
+
+.profile-empty-card {
+    margin: 0 0 2.5rem;
+    padding: 2rem;
+    background: linear-gradient(180deg, rgba(107, 127, 247, 0.1), rgba(107, 127, 247, 0.04));
+    border: 1px solid rgba(107, 127, 247, 0.28);
+    border-radius: 16px;
+}
+
+.profile-empty-card h2 {
+    margin: 0 0 0.65rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.profile-empty-card p {
+    margin: 0;
+    max-width: 640px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.profile-empty-actions {
+    margin-top: 1.2rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.profile-context-note {
+    margin: -1.5rem 0 2rem;
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
 }
 
 .section-title-wrapper {
@@ -461,7 +496,6 @@ input:focus{
 
 .track-item:hover {
     background: linear-gradient(90deg, rgba(107, 127, 247, 0.05), var(--color-hover));
-    padding-left: 1.75rem;
 }
 
 .track-item:hover .track-name {
@@ -470,7 +504,7 @@ input:focus{
 
 .track-item:hover .track-rank {
     color: var(--color-accent);
-    transform: scale(1.1);
+    transform: scale(1.04);
 }
 
 .track-rank {
@@ -576,7 +610,6 @@ input:focus{
 .track-item:hover .metric-item {
     background: rgba(107, 127, 247, 0.15);
     color: var(--color-accent);
-    transform: translateX(-4px);
 }
 
 .metric-item svg {
@@ -587,7 +620,21 @@ input:focus{
 
 .track-item:hover .metric-item svg {
     opacity: 1;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-hero-bg,
+    .stat-item,
+    .track-item,
+    .track-rank,
+    .metric-item,
+    .metric-item svg,
+    .btn-profile {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
 }
 
 .profile-actions {
@@ -670,6 +717,20 @@ input:focus{
     color: var(--color-accent);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(107, 127, 247, 0.2);
+}
+
+.btn-edit {
+    background: rgba(107, 127, 247, 0.1);
+    border: 1px solid rgba(107, 127, 247, 0.35);
+    color: #bcc8ff;
+}
+
+.btn-edit:hover {
+    background: rgba(107, 127, 247, 0.2);
+    border-color: rgba(107, 127, 247, 0.55);
+    color: #d4dcff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(107, 127, 247, 0.2);
 }
 
 @media (max-width: 1024px) {
@@ -778,6 +839,10 @@ input:focus{
     
     .profile-actions {
         flex-direction: column;
+    }
+
+    .profile-empty-card {
+        padding: 1.5rem;
     }
     
     .btn-profile {

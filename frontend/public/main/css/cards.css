@@ -44,6 +44,10 @@
     border-color: rgba(107, 127, 247, 0.35);
 }
 
+.sample-card:not(.sample-square) {
+    padding-bottom: 1.1rem;
+}
+
 .card-header {
     display: flex;
     justify-content: space-between;
@@ -118,7 +122,7 @@
 
 .card-author .author-link:hover {
     color: var(--color-text-primary);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .card-meta-top {
@@ -150,6 +154,17 @@
     gap: 1rem;
     padding-bottom: 0.35rem;
     padding-right: 0.3rem;
+}
+
+/* Loops: push action buttons a bit lower and add more breathing room */
+.sample-card:not(.sample-square) .card-controls {
+    margin-top: 0.45rem;
+    padding-top: 1rem;
+}
+
+.sample-card:not(.sample-square) .controls-actions {
+    align-self: flex-end;
+    transform: translateY(4px);
 }
 
 .controls-left {
@@ -187,7 +202,9 @@
 }
 
 .sample-square {
-    padding: var(--space-xl);
+    --sample-square-pad: var(--space-xl);
+    padding: var(--sample-square-pad);
+    padding-bottom: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -253,6 +270,39 @@
     letter-spacing: 0.5px;
 }
 
+.sample-author {
+    margin: 0.45rem 0 0;
+    min-height: 18px;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    color: var(--color-text-secondary);
+    opacity: 0.85;
+}
+
+.sample-author-link {
+    color: inherit;
+    font-size: inherit;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity var(--transition-base), color var(--transition-base);
+}
+
+.sample-author-prefix {
+    opacity: 0.78;
+}
+
+.sample-author-link:hover {
+    color: inherit;
+    opacity: 1;
+    text-decoration: none;
+}
+
+.sample-author-muted {
+    color: inherit;
+    font-size: inherit;
+    opacity: 0.9;
+}
+
 .sample-waveform-container {
     width: 100%;
     height: 50px;
@@ -268,44 +318,72 @@
     height: 100%;
 }
 
-.sample-square .sample-play-btn {
-    width: 58px;
-    height: 58px;
+.sample-controls {
+    width: calc(100% + (var(--sample-square-pad) * 2));
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-top: 1.6rem;
+    margin-left: calc(var(--sample-square-pad) * -1);
+    margin-right: calc(var(--sample-square-pad) * -1);
     z-index: 2;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--color-accent);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--color-bg-card);
+    overflow: hidden;
+}
+
+.sample-controls .sample-play-btn,
+.sample-controls .download-btn-bottom {
+    width: 100%;
+    min-height: 56px;
     border: none;
-    display: flex;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
-    box-shadow: var(--shadow-soft);
+    transition: background var(--transition-base), color var(--transition-base), transform var(--transition-base);
+    text-decoration: none;
 }
 
-.sample-square .sample-play-btn:hover {
-    background: var(--color-accent);
-    transform: scale(1.05);
-    box-shadow: var(--shadow-hover);
+.sample-controls .download-btn-bottom {
+    border-left: 1px solid var(--color-border);
+    color: #f5a623;
 }
 
-.sample-square .sample-play-btn:active {
-    transform: scale(0.98);
+.sample-controls .sample-play-btn {
+    color: #55d1bf;
 }
 
-.sample-square .play-icon {
+.sample-controls .sample-play-btn .play-icon,
+.sample-controls .sample-play-btn .pause-icon {
     width: 24px;
     height: 24px;
 }
 
-.sample-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2.5rem;
-    z-index: 2;
-    margin-top: 1rem;
+.sample-controls .sample-play-btn .play-icon path,
+.sample-controls .sample-play-btn .pause-icon path {
+    fill: #55d1bf;
+}
+
+.sample-controls .download-btn-bottom .download-icon {
+    width: 24px;
+    height: 24px;
+    color: #f5a623;
+    stroke: currentColor;
+}
+
+.sample-controls .sample-play-btn:hover,
+.sample-controls .download-btn-bottom:hover {
+    transform: none;
+    background: rgba(107, 127, 247, 0.12);
+}
+
+.sample-controls .sample-play-btn:active,
+.sample-controls .download-btn-bottom:active {
+    transform: none;
 }
 
 /* Загрузки для SAMPLES (вверху карточки) */

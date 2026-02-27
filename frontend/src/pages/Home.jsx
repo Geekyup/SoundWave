@@ -17,6 +17,12 @@ function formatDate(value) {
   return date.toLocaleString();
 }
 
+function getProfileHref(author) {
+  const username = (author || '').trim();
+  if (!username) return null;
+  return `/profile/${encodeURIComponent(username)}`;
+}
+
 export default function Home({ tab }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loops, setLoops] = useState([]);
@@ -281,61 +287,76 @@ export default function Home({ tab }) {
                     <p>Loading samples...</p>
                   </div>
                 ) : samples.length ? (
-                  samples.map(sample => (
-                    <div
-                      className="sample-card sample-square sample-item"
-                      id={`card-${sample.id}`}
-                      data-card-id={sample.id}
-                      data-url={sample.audio_file}
-                      data-type={sample.sample_type}
-                      data-genre={sample.genre}
-                      key={sample.id}
-                    >
-                      <span className="downloads-count sample-downloads-top" id={`downloads-count-${sample.id}`}>
-                        <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="7 10 12 15 17 10"></polyline>
-                          <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        <span className="downloads-num">{sample.downloads}</span>
-                      </span>
+                  samples.map(sample => {
+                    const sampleAuthor = sample.author?.trim() || 'Unknown';
+                    const sampleAuthorHref = getProfileHref(sample.author);
 
-                      <div className="sample-info">
-                        <h3 className="sample-title">{sample.name}</h3>
-                        <p className="sample-type">{sample.sample_type_display}</p>
-                      </div>
-
-                      <div className="sample-waveform-container">
-                        <div className="sample-waveform" id={`waveform-${sample.id}`}></div>
-                      </div>
-
-                      <div className="sample-controls">
-                        <button
-                          className="play-btn-main sample-play-btn"
-                          data-card-id={sample.id}
-                          data-url={sample.audio_file}
-                          title="Play"
-                          type="button"
-                        >
-                          <svg className="play-icon" viewBox="0 0 24 24" fill="white">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </button>
-
-                        <a
-                          href={`/api/samples/${sample.id}/download/`}
-                          className="download-btn-bottom"
-                          title="Download sample"
-                        >
+                    return (
+                      <div
+                        className="sample-card sample-square sample-item"
+                        id={`card-${sample.id}`}
+                        data-card-id={sample.id}
+                        data-url={sample.audio_file}
+                        data-type={sample.sample_type}
+                        data-genre={sample.genre}
+                        key={sample.id}
+                      >
+                        <span className="downloads-count sample-downloads-top" id={`downloads-count-${sample.id}`}>
                           <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                           </svg>
-                        </a>
+                          <span className="downloads-num">{sample.downloads}</span>
+                        </span>
+
+                        <div className="sample-info">
+                          <h3 className="sample-title">{sample.name}</h3>
+                          <p className="sample-type">{sample.sample_type_display}</p>
+                          <p className="sample-author">
+                            <span className="sample-author-prefix">by </span>
+                            {sampleAuthorHref ? (
+                              <a href={sampleAuthorHref} className="sample-author-link" title={`View ${sampleAuthor} profile`}>
+                                {sampleAuthor}
+                              </a>
+                            ) : (
+                              <span className="sample-author-muted">{sampleAuthor}</span>
+                            )}
+                          </p>
+                        </div>
+
+                        <div className="sample-waveform-container">
+                          <div className="sample-waveform" id={`waveform-${sample.id}`}></div>
+                        </div>
+
+                        <div className="sample-controls">
+                          <button
+                            className="play-btn-main sample-play-btn"
+                            data-card-id={sample.id}
+                            data-url={sample.audio_file}
+                            title="Play"
+                            type="button"
+                          >
+                            <svg className="play-icon" viewBox="0 0 24 24" fill="white">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </button>
+
+                          <a
+                            href={`/api/samples/${sample.id}/download/`}
+                            className="download-btn-bottom"
+                            title="Download sample"
+                          >
+                            <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="7 10 12 15 17 10"></polyline>
+                              <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="empty-state">
                     <p>No uploaded samples.</p>
@@ -356,7 +377,15 @@ export default function Home({ tab }) {
 
               <div id="loop-filter-modal" className={`modal ${modalOpen ? 'show' : ''}`}>
                 <div className="modal-content">
-                  <span className="close" id="close-loop-filter" onClick={() => setModalOpen(false)}>&times;</span>
+                  <button
+                    type="button"
+                    className="modal-close-btn"
+                    id="close-loop-filter"
+                    onClick={() => setModalOpen(false)}
+                    aria-label="Close filter modal"
+                  >
+                    <span className="modal-close-icon" aria-hidden="true">×</span>
+                  </button>
                   <h3>Loop Filters</h3>
                   <form id="loop-filter-form" onSubmit={applyLoopFilters}>
                     <div className="filter-group">
@@ -427,12 +456,12 @@ export default function Home({ tab }) {
                           { value: '', label: 'Newest' },
                           { value: 'downloads', label: 'Most downloaded' },
                         ]}
-                        direction="down"
+                        direction="up"
                       />
                     </div>
                     <div className="modal-actions">
-                      <button type="submit" className="btn btn-primary">Apply</button>
-                      <button type="button" className="btn btn-secondary" id="reset-loop-filters" onClick={resetLoopFilters}>
+                      <button type="submit" className="loop-filter-btn loop-filter-btn-primary">Apply</button>
+                      <button type="button" className="loop-filter-btn loop-filter-btn-secondary" id="reset-loop-filters" onClick={resetLoopFilters}>
                         Reset
                       </button>
                     </div>
@@ -446,72 +475,81 @@ export default function Home({ tab }) {
                     <p>Loading loops...</p>
                   </div>
                 ) : loops.length ? (
-                  loops.map(loop => (
-                    <div
-                      className="sample-card"
-                      id={`card-${loop.id}`}
-                      data-card-id={loop.id}
-                      data-url={loop.audio_file}
-                      key={loop.id}
-                    >
-                      <div className="card-header">
-                        <div className="card-info">
-                          <h3 className="card-title">{loop.name}</h3>
-                          <div className="card-author">
-                            <div className="card-author-wrapper">
-                              <div className="card-author-avatar">
-                                {loop.author ? loop.author.charAt(0).toUpperCase() : 'U'}
+                  loops.map(loop => {
+                    const loopAuthor = loop.author?.trim() || 'Unknown';
+                    const loopAuthorHref = getProfileHref(loop.author);
+
+                    return (
+                      <div
+                        className="sample-card"
+                        id={`card-${loop.id}`}
+                        data-card-id={loop.id}
+                        data-url={loop.audio_file}
+                        key={loop.id}
+                      >
+                        <div className="card-header">
+                          <div className="card-info">
+                            <h3 className="card-title">{loop.name}</h3>
+                            <div className="card-author">
+                              <div className="card-author-wrapper">
+                                <div className="card-author-avatar">
+                                  {loopAuthor.charAt(0).toUpperCase()}
+                                </div>
+                                {loopAuthorHref ? (
+                                  <a href={loopAuthorHref} className="author-link">{loopAuthor}</a>
+                                ) : (
+                                  <span className="author-link">{loopAuthor}</span>
+                                )}
                               </div>
-                              <a href={`/profile/${loop.author}`} className="author-link">{loop.author}</a>
                             </div>
                           </div>
-                        </div>
-                        <div className="card-meta-top">
-                          <span className="upload-date">{formatDate(loop.uploaded_at)}</span>
-                        </div>
-                      </div>
-
-                      <div className="card-waveform">
-                        <div className="waveform-container" id={`waveform-${loop.id}`}></div>
-                      </div>
-
-                      <div className="card-controls">
-                        <div className="controls-right">
-                          <span className="downloads-count" id={`downloads-count-${loop.id}`}>
-                            <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                              <polyline points="7 10 12 15 17 10"></polyline>
-                              <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            <span className="downloads-num">{loop.downloads}</span>
-                          </span>
+                          <div className="card-meta-top">
+                            <span className="upload-date">{formatDate(loop.uploaded_at)}</span>
+                          </div>
                         </div>
 
-                        <div className="controls-actions">
-                          <a
-                            href={`/api/loops/${loop.id}/download/`}
-                            className="download-btn-rect"
-                            title="Download loop"
-                          >
-                            <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                              <line x1="4" y1="20" x2="20" y2="20" />
-                            </svg>
-                            Download
-                          </a>
-                          <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.audio_file} type="button">
-                            Play
-                          </button>
+                        <div className="card-waveform">
+                          <div className="waveform-container" id={`waveform-${loop.id}`}></div>
+                        </div>
+
+                        <div className="card-controls">
+                          <div className="controls-right">
+                            <span className="downloads-count" id={`downloads-count-${loop.id}`}>
+                              <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                              </svg>
+                              <span className="downloads-num">{loop.downloads}</span>
+                            </span>
+                          </div>
+
+                          <div className="controls-actions">
+                            <a
+                              href={`/api/loops/${loop.id}/download/`}
+                              className="download-btn-rect"
+                              title="Download loop"
+                            >
+                              <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                                <line x1="4" y1="20" x2="20" y2="20" />
+                              </svg>
+                              Download
+                            </a>
+                            <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.audio_file} type="button">
+                              Play
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="card-tags">
+                          <span className="tag bpm-tag">{loop.bpm} bpm</span>
+                          <span className="tag genre-tag">{loop.genre_display}</span>
+                          <span className="tag size-tag">{loop.file_size}</span>
                         </div>
                       </div>
-
-                      <div className="card-tags">
-                        <span className="tag bpm-tag">{loop.bpm} bpm</span>
-                        <span className="tag genre-tag">{loop.genre_display}</span>
-                        <span className="tag size-tag">{loop.file_size}</span>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="empty-state">
                     <p>
