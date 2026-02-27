@@ -1,58 +1,12 @@
-from django.contrib import admin, messages
-from django import forms
-from django.urls import path, reverse
-from django.shortcuts import render, redirect
-from django.db import transaction
-from .models import Loop, Sample
-from .forms import validate_audio_duration_max
 from pathlib import Path
 
-class MultipleFileInput(forms.ClearableFileInput):
-    allow_multiple_selected = True
+from django.contrib import admin, messages
+from django.shortcuts import redirect, render
+from django.urls import path, reverse
 
-class MultipleFileField(forms.FileField):
-    """Custom field to handle multiple file uploads"""
-    def __init__(self, *args, **kwargs):
-        kwargs['widget'] = MultipleFileInput()
-        super().__init__(*args, **kwargs)
-    
-    def clean(self, data, initial=None):
-        if not data:
-            if self.required:
-                raise forms.ValidationError(self.error_messages['required'], code='required')
-            return []
-        
-        if not isinstance(data, (list, tuple)):
-            data = [data]
-        
-        result = []
-        for file_data in data:
-            if file_data:
-                try:
-                    # Validate each file
-                    f = super().clean(file_data, initial)
-                    result.append(f)
-                except forms.ValidationError as e:
-                    raise e
-        
-        if not result and self.required:
-            raise forms.ValidationError(self.error_messages['required'], code='required')
-        
-        return result
+from .forms import SampleBulkUploadAdminForm
+from .models import Loop, Sample
 
-class BulkSampleUploadForm(forms.Form):
-    audio_files = MultipleFileField(
-        label='Выбрать файлы сэмплов',
-        required=True,
-        help_text='Максимальная длительность: 10 секунд на файл'
-    )
-    sample_type = forms.ChoiceField(label='Тип сэмпла')
-    genre = forms.ChoiceField(label='Жанр')
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['sample_type'].choices = Sample.SAMPLE_TYPE_CHOICES
-        self.fields['genre'].choices = Sample._meta.get_field('genre').choices
 
 @admin.register(Loop)
 class LoopAdmin(admin.ModelAdmin):
@@ -63,9 +17,9 @@ class LoopAdmin(admin.ModelAdmin):
 
 @admin.register(Sample)
 class SampleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sample_type', 'genre', 'uploaded_at', 'downloads')
+    list_display = ('name', 'author', 'sample_type', 'genre', 'uploaded_at', 'downloads')
     list_filter = ('sample_type', 'genre', 'uploaded_at')
-    search_fields = ('name',)
+    search_fields = ('name', 'author')
     readonly_fields = ('uploaded_at',)
     change_list_template = 'admin/uploader/sample/change_list.html'
 
@@ -83,61 +37,58 @@ class SampleAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context)
 
     def bulk_upload_view(self, request):
-        form = BulkSampleUploadForm(request.POST or None, request.FILES or None)
-        
         if request.method == 'POST':
+            form = SampleBulkUploadAdminForm(request.POST, request.FILES)
             if form.is_valid():
-                files = request.FILES.getlist('audio_files')
+                files = form.cleaned_data['audio_files']
                 sample_type = form.cleaned_data['sample_type']
                 genre = form.cleaned_data['genre']
-                
-                success_count = 0
-                error_list = []
-                
-                # Validate all files first
-                validator = validate_audio_duration_max(10)
-                for f in files:
+                author = form.cleaned_data['author'].strip() or request.user.get_username() or 'admin'
+
+                created_count = 0
+                failed_uploads = []
+
+                for audio_file in files:
                     try:
-                        validator(f)
-                    except Exception as e:
-                        error_list.append(f'{f.name}: {str(e)}')
-                
-                if error_list:
-                    for error in error_list:
-                        messages.error(request, error)
-                else:
-                    # If validation passed, save files
-                    try:
-                        with transaction.atomic():
-                            for f in files:
-                                try:
-                                    file_name = Path(f.name).stem  
-                                    Sample.objects.create(
-                                        name=file_name,
-                                        author=request.user.username if request.user.is_authenticated else 'admin',
-                                        sample_type=sample_type,
-                                        genre=genre,
-                                        audio_file=f,
-                                    )
-                                    success_count += 1
-                                except Exception as e:
-                                    messages.warning(request, f'Failed to upload {f.name}: {str(e)}')
-                        
-                        if success_count > 0:
-                            messages.success(request, f'Successfully uploaded {success_count} samples.')
-                            return redirect(reverse('admin:uploader_sample_changelist'))
-                    
-                    except Exception as e:
-                        messages.error(request, f'Critical error during upload: {e}')
+                        file_name = Path(audio_file.name).stem[:200]
+                        Sample.objects.create(
+                            name=file_name or 'untitled',
+                            author=author,
+                            sample_type=sample_type,
+                            genre=genre,
+                            audio_file=audio_file,
+                        )
+                        created_count += 1
+                    except Exception as exc:
+                        failed_uploads.append((audio_file.name, str(exc)))
+
+                if created_count:
+                    messages.success(
+                        request,
+                        f'Uploaded {created_count} sample(s) successfully.',
+                    )
+                    if failed_uploads:
+                        failed_total = len(failed_uploads)
+                        preview_errors = '; '.join(
+                            f'{name}: {error}' for name, error in failed_uploads[:3]
+                        )
+                        tail = ' ...' if failed_total > 3 else ''
+                        messages.warning(
+                            request,
+                            f'Failed files: {failed_total}. {preview_errors}{tail}',
+                        )
+                    return redirect(reverse('admin:uploader_sample_changelist'))
+
+                messages.error(request, 'No files were uploaded. Check errors and try again.')
             else:
-                messages.error(request, 'Please fix the errors below.')
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f'{field}: {error}')
+                messages.error(request, 'Please fix the form errors below.')
+        else:
+            form = SampleBulkUploadAdminForm()
 
         context = {
-            **self.admin_site.each_context(request), 
+            **self.admin_site.each_context(request),
             'form': form,
+            'opts': self.model._meta,
             'title': 'Bulk sample upload',
         }
         return render(request, 'admin/uploader/sample/bulk_upload.html', context)

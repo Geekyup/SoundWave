@@ -46,6 +46,79 @@ def validate_audio_duration_max(max_seconds):
     return validator
 
 
+class MultipleAudioFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleAudioFileField(forms.FileField):
+    """FileField that returns a list of files from a multi-file input."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault(
+            'widget',
+            MultipleAudioFileInput(attrs={'accept': 'audio/*'}),
+        )
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        if not data:
+            if self.required:
+                raise ValidationError(self.error_messages['required'], code='required')
+            return []
+
+        files = data if isinstance(data, (list, tuple)) else [data]
+        cleaned_files = []
+
+        for file_data in files:
+            if not file_data:
+                continue
+            cleaned_files.append(super().clean(file_data, initial))
+
+        if not cleaned_files and self.required:
+            raise ValidationError(self.error_messages['required'], code='required')
+
+        return cleaned_files
+
+
+class SampleBulkUploadAdminForm(forms.Form):
+    audio_files = MultipleAudioFileField(
+        label='Audio files',
+        required=True,
+        help_text='You can choose multiple files at once. Max duration: 10 seconds per file.',
+    )
+    sample_type = forms.ChoiceField(
+        label='Sample type',
+        choices=Sample.SAMPLE_TYPE_CHOICES,
+    )
+    genre = forms.ChoiceField(
+        label='Genre',
+        choices=Sample._meta.get_field('genre').choices,
+    )
+    author = forms.CharField(
+        label='Author',
+        max_length=100,
+        required=False,
+        help_text='Optional. If empty, current admin username will be used.',
+    )
+
+    def clean_audio_files(self):
+        files = self.cleaned_data['audio_files']
+        validator = validate_audio_duration_max(10)
+        errors = []
+
+        for audio_file in files:
+            try:
+                validator(audio_file)
+            except ValidationError as exc:
+                for message in exc.messages:
+                    errors.append(f'{audio_file.name}: {message}')
+
+        if errors:
+            raise ValidationError(errors)
+
+        return files
+
+
 class LoopUploadForm(forms.ModelForm):
     audio_file = forms.FileField(
         widget=forms.FileInput(attrs={
