@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import LoopViewSet, SampleViewSet, MeView, RegisterView
+from .views import LoopViewSet, SampleViewSet, MeView, RegisterView, WaveformCacheView
 
 router = DefaultRouter()
 router.register('loops', LoopViewSet, basename='loops')
@@ -13,5 +13,6 @@ urlpatterns = [
     path('auth/token/', TokenObtainPairView.as_view(), name='auth-token'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='auth-refresh'),
     path('me/', MeView.as_view(), name='me'),
+    path('waveforms/<str:kind>/<int:pk>/', WaveformCacheView.as_view(), name='waveform-cache'),
     path('', include(router.urls)),
 ]

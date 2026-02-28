@@ -5,12 +5,14 @@ from rest_framework import serializers
 
 from apps.accounts.models import Profile
 from apps.uploader.models import Loop, Sample
+from apps.uploader.waveform_cache import get_cached_waveform
 
 
 class LoopSerializer(serializers.ModelSerializer):
     genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     file_size = serializers.CharField(source='get_file_size', read_only=True)
     download_url = serializers.SerializerMethodField()
+    waveform = serializers.SerializerMethodField()
 
     class Meta:
         model = Loop
@@ -27,6 +29,7 @@ class LoopSerializer(serializers.ModelSerializer):
             'keywords',
             'file_size',
             'download_url',
+            'waveform',
         ]
         read_only_fields = ['id', 'uploaded_at', 'downloads', 'author']
 
@@ -35,12 +38,24 @@ class LoopSerializer(serializers.ModelSerializer):
         path = reverse('loops-download', args=[obj.id])
         return request.build_absolute_uri(path) if request else path
 
+    def get_waveform(self, obj):
+        if not self.context.get('include_waveform'):
+            return None
+        return get_cached_waveform('loop', obj.id, obj.audio_file.name)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self.context.get('include_waveform'):
+            data.pop('waveform', None)
+        return data
+
 
 class SampleSerializer(serializers.ModelSerializer):
     genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     sample_type_display = serializers.CharField(source='get_sample_type_display', read_only=True)
     file_size = serializers.CharField(source='get_file_size', read_only=True)
     download_url = serializers.SerializerMethodField()
+    waveform = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -57,6 +72,7 @@ class SampleSerializer(serializers.ModelSerializer):
             'downloads',
             'file_size',
             'download_url',
+            'waveform',
         ]
         read_only_fields = ['id', 'uploaded_at', 'downloads', 'author']
 
@@ -64,6 +80,17 @@ class SampleSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('samples-download', args=[obj.id])
         return request.build_absolute_uri(path) if request else path
+
+    def get_waveform(self, obj):
+        if not self.context.get('include_waveform'):
+            return None
+        return get_cached_waveform('sample', obj.id, obj.audio_file.name)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self.context.get('include_waveform'):
+            data.pop('waveform', None)
+        return data
 
 
 class MeSerializer(serializers.ModelSerializer):

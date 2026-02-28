@@ -1,12 +1,16 @@
 import os
 from django.db.models import F
 from django.http import FileResponse, Http404
-from rest_framework import generics, permissions, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
 from apps.uploader.models import Loop, Sample
+from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_waveform
+from apps.uploader.bpm_extraction import strip_bpm_from_name
 
 from .filters import LoopFilter, SampleFilter
 from .serializers import LoopSerializer, SampleSerializer, MeSerializer, RegisterSerializer
@@ -39,8 +43,17 @@ class LoopViewSet(viewsets.ModelViewSet):
     ordering_fields = ['downloads', 'uploaded_at', 'bpm']
     ordering = ['-uploaded_at']
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
+        return context
+
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user.username)
+        name = serializer.validated_data.get('name', '')
+        serializer.save(
+            author=self.request.user.username,
+            name=strip_bpm_from_name(name) or name,
+        )
 
     @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.AllowAny])
     def download(self, request, pk=None):
@@ -57,6 +70,11 @@ class SampleViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'author']
     ordering_fields = ['downloads', 'uploaded_at']
     ordering = ['-uploaded_at']
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
+        return context
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user.username)
@@ -80,3 +98,63 @@ class MeView(generics.RetrieveUpdateAPIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+
+class WaveformCacheView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, kind, pk):
+        model, cache_kind = resolve_model_for_kind(kind)
+        if not model:
+            return Response({'detail': 'Unsupported media kind.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        obj = model.objects.filter(pk=pk).only('id', 'audio_file').first()
+        if not obj:
+            return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        peaks = request.data.get('peaks')
+        if not isinstance(peaks, list):
+            return Response({'detail': 'peaks must be a list.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(peaks) < 16:
+            return Response({'detail': 'peaks list is too short.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(peaks) > 8192:
+            peaks = peaks[:8192]
+
+        normalized = []
+        for value in peaks:
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            if numeric > 1.0:
+                numeric = 1.0
+            if numeric < -1.0:
+                numeric = -1.0
+            normalized.append(round(numeric, 6))
+
+        if len(normalized) < 16:
+            return Response({'detail': 'peaks payload is invalid.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        duration_value = request.data.get('duration')
+        duration = None
+        if duration_value is not None:
+            try:
+                duration = round(float(duration_value), 3)
+                if duration <= 0 or duration > 7200:
+                    duration = None
+            except (TypeError, ValueError):
+                duration = None
+
+        stored = set_cached_waveform(
+            cache_kind,
+            obj.id,
+            obj.audio_file.name,
+            normalized,
+            duration=duration,
+        )
+        if not stored:
+            return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'cached': True}, status=status.HTTP_201_CREATED)

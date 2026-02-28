@@ -2,6 +2,7 @@
     const players = {}; // {cardId: WaveSurferInstance}
     const playersMeta = {}; // {cardId: {player, btn, waveformEl, isLoop, userPaused}}
     let currentPlayer = null;
+    const waveformCacheSent = new Set();
 
     const ICONS = {
         play: '<svg class="play-icon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
@@ -17,6 +18,93 @@
         barWidth: 3, barGap: 2, barHeight: 1.5,
         responsive: true, normalize: true
     };
+
+    function buildApiUrl(path) {
+        const base = (window.__SW_API_BASE || '').trim().replace(/\/+$/, '');
+        return base ? `${base}${path}` : path;
+    }
+
+    function parseWaveformPeaks(raw) {
+        if (!raw) return null;
+        try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed) || !parsed.length) return null;
+            const normalized = parsed
+                .map(value => Math.max(-1, Math.min(1, Number(value) || 0)))
+                .filter(value => Number.isFinite(value));
+            return normalized.length ? normalized : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function parseWaveformDuration(raw) {
+        if (!raw) return null;
+        const value = Number(raw);
+        if (!Number.isFinite(value) || value <= 0) return null;
+        return value;
+    }
+
+    function getTargetPeakLength(waveformEl) {
+        const width = waveformEl ? Math.max(320, waveformEl.clientWidth || 0) : 320;
+        return Math.min(4096, Math.max(1024, Math.round(width * 2.4)));
+    }
+
+    function tryExportPeaks(ws, targetLength) {
+        if (!ws || typeof ws.exportPeaks !== 'function') return null;
+        let exported = null;
+        const maxLength = Math.max(128, Number(targetLength) || 1024);
+        try {
+            exported = ws.exportPeaks({maxLength, precision: 10000});
+        } catch (_) {
+            try {
+                exported = ws.exportPeaks(maxLength);
+            } catch (_) {
+                return null;
+            }
+        }
+
+        const channelPeaks = Array.isArray(exported?.[0]) ? exported[0] : exported;
+        if (!Array.isArray(channelPeaks) || !channelPeaks.length) return null;
+
+        const sanitized = [];
+        for (let i = 0; i < channelPeaks.length; i += 1) {
+            const numeric = Number(channelPeaks[i]);
+            if (!Number.isFinite(numeric)) continue;
+            const clamped = Math.max(-1, Math.min(1, numeric));
+            sanitized.push(Number(clamped.toFixed(6)));
+        }
+        return sanitized.length ? sanitized : null;
+    }
+
+    async function cacheWaveform(card, peaks, duration) {
+        const kind = card.dataset.kind;
+        const cardId = card.dataset.cardId;
+        if (!kind || !cardId || !Array.isArray(peaks) || !peaks.length) return;
+
+        const cacheKey = `${kind}:${cardId}`;
+        if (waveformCacheSent.has(cacheKey)) return;
+        waveformCacheSent.add(cacheKey);
+
+        try {
+            const response = await fetch(buildApiUrl(`/api/waveforms/${kind}/${cardId}/`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    peaks,
+                    duration,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (_) {
+            waveformCacheSent.delete(cacheKey);
+            // Cache write failure should not affect playback.
+        }
+    }
 
     function setButtonIcon(btn, playing) {
         if (!btn) return;
@@ -73,6 +161,9 @@
         const url = card.dataset.url;
         const waveform = card.querySelector('[id^="waveform-"]');
         if (!cardId || !url || !waveform) return;
+        const cachedPeaks = parseWaveformPeaks(card.dataset.waveformPeaks);
+        const cachedDuration = parseWaveformDuration(card.dataset.waveformDuration);
+        const hasCachedWaveform = Boolean(cachedPeaks && cachedPeaks.length);
 
         // React can remount cards with the same id after filtering/pagination.
         // Recreate player if waveform container node changed.
@@ -83,7 +174,15 @@
             destroyPlayer(cardId);
         }
 
-        const ws = WaveSurfer.create({...WS_OPTIONS, container: waveform, url});
+        const wsConfig = {...WS_OPTIONS, container: waveform, url};
+        if (hasCachedWaveform) {
+            wsConfig.peaks = cachedPeaks;
+            if (cachedDuration) {
+                wsConfig.duration = cachedDuration;
+            }
+        }
+
+        const ws = WaveSurfer.create(wsConfig);
         ws.cardId = cardId;
         const btn = card.querySelector('.play-btn-main, .play-btn-rect');
         players[cardId] = ws;
@@ -110,6 +209,16 @@
             setButtonIcon(btn, false);
             if (currentPlayer === ws) currentPlayer = null;
         });
+
+        if (!hasCachedWaveform) {
+            ws.once('ready', () => {
+                const targetLength = getTargetPeakLength(waveform);
+                const exportedPeaks = tryExportPeaks(ws, targetLength);
+                if (!exportedPeaks) return;
+                const duration = typeof ws.getDuration === 'function' ? ws.getDuration() : null;
+                cacheWaveform(card, exportedPeaks, duration);
+            });
+        }
     }
 
     function togglePlay(cardId) {

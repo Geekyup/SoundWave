@@ -1,7 +1,13 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from mutagen import File as MutagenFile
+
+from .bpm_extraction import strip_bpm_from_name
 from .models import Loop, Sample
+
+
+LOOP_MAX_DURATION_SECONDS = 300
+SAMPLE_MAX_DURATION_SECONDS = 10
 
 
 def validate_audio_duration_max(max_seconds):
@@ -103,7 +109,47 @@ class SampleBulkUploadAdminForm(forms.Form):
 
     def clean_audio_files(self):
         files = self.cleaned_data['audio_files']
-        validator = validate_audio_duration_max(10)
+        validator = validate_audio_duration_max(SAMPLE_MAX_DURATION_SECONDS)
+        errors = []
+
+        for audio_file in files:
+            try:
+                validator(audio_file)
+            except ValidationError as exc:
+                for message in exc.messages:
+                    errors.append(f'{audio_file.name}: {message}')
+
+        if errors:
+            raise ValidationError(errors)
+
+        return files
+
+
+class LoopBulkUploadAdminForm(forms.Form):
+    audio_files = MultipleAudioFileField(
+        label='Audio files',
+        required=True,
+        help_text='You can choose multiple files at once. Max duration: 5 minutes per file.',
+    )
+    genre = forms.ChoiceField(
+        label='Genre',
+        choices=Loop._meta.get_field('genre').choices,
+    )
+    keywords = forms.CharField(
+        label='Keywords',
+        required=False,
+        help_text='Applied to all uploaded loops.',
+    )
+    author = forms.CharField(
+        label='Author',
+        max_length=100,
+        required=False,
+        help_text='Optional. If empty, current admin username will be used.',
+    )
+
+    def clean_audio_files(self):
+        files = self.cleaned_data['audio_files']
+        validator = validate_audio_duration_max(LOOP_MAX_DURATION_SECONDS)
         errors = []
 
         for audio_file in files:
@@ -125,8 +171,8 @@ class LoopUploadForm(forms.ModelForm):
             'class': 'form-control',
             'accept': 'audio/*',
         }),
-        validators=[validate_audio_duration_max(60)], 
-        help_text='Maximum duration: 1 minute'
+        validators=[validate_audio_duration_max(LOOP_MAX_DURATION_SECONDS)],
+        help_text='Maximum duration: 5 minutes'
     )
     
     class Meta:
@@ -152,13 +198,18 @@ class LoopUploadForm(forms.ModelForm):
             }),
         }
 
+    def clean_name(self):
+        name = self.cleaned_data.get('name', '')
+        cleaned_name = strip_bpm_from_name(name)
+        return cleaned_name or name
+
 class SampleUploadForm(forms.ModelForm):
     audio_file = forms.FileField(
         widget=forms.FileInput(attrs={
             'class': 'form-control',
             'accept': 'audio/*',
         }),
-        validators=[validate_audio_duration_max(10)],
+        validators=[validate_audio_duration_max(SAMPLE_MAX_DURATION_SECONDS)],
         help_text='Maximum duration: 10 seconds'
     )
     
