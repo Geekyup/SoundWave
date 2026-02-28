@@ -1,3 +1,5 @@
+from apps.drumkits.models import DrumKitFile
+
 from .models import Loop, Sample
 
 
@@ -6,6 +8,8 @@ def resolve_model_for_kind(kind):
         return Loop, 'loop'
     if kind in ('sample', 'samples'):
         return Sample, 'sample'
+    if kind in ('drum-kit-file', 'drum-kit-files', 'drumkit-file', 'drumkit-files'):
+        return DrumKitFile, 'drum-kit-file'
     return None, None
 
 

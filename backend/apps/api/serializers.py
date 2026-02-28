@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from apps.accounts.models import Profile
+from apps.drumkits.models import DrumKit, DrumKitFile
 from apps.uploader.models import Loop, Sample
 from apps.uploader.waveform_cache import get_cached_waveform
 
@@ -150,3 +151,148 @@ class RegisterSerializer(serializers.Serializer):
         )
         Profile.objects.get_or_create(user=user)
         return user
+
+
+class DrumKitListSerializer(serializers.ModelSerializer):
+    cover_url = serializers.SerializerMethodField()
+    files_count = serializers.IntegerField(read_only=True)
+    download_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrumKit
+        fields = [
+            'id',
+            'title',
+            'slug',
+            'description',
+            'author',
+            'cover_url',
+            'is_public',
+            'created_at',
+            'files_count',
+            'download_url',
+        ]
+
+    def get_cover_url(self, obj):
+        if not obj.cover:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.cover.url) if request else obj.cover.url
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        path = reverse('drumkits-download', args=[obj.slug])
+        return request.build_absolute_uri(path) if request else path
+
+
+class DrumKitFileSerializer(serializers.ModelSerializer):
+    audio_url = serializers.SerializerMethodField()
+    waveform = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrumKitFile
+        fields = [
+            'id',
+            'name',
+            'relative_path',
+            'folder_path',
+            'duration',
+            'audio_url',
+            'waveform',
+        ]
+
+    def get_audio_url(self, obj):
+        if not obj.audio_file:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.audio_file.url) if request else obj.audio_file.url
+
+    def get_waveform(self, obj):
+        if not self.context.get('include_waveform'):
+            return None
+        return get_cached_waveform('drum-kit-file', obj.id, obj.audio_file.name)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self.context.get('include_waveform'):
+            data.pop('waveform', None)
+        return data
+
+
+class DrumKitDetailSerializer(serializers.ModelSerializer):
+    cover_url = serializers.SerializerMethodField()
+    files_count = serializers.IntegerField(read_only=True)
+    download_url = serializers.SerializerMethodField()
+    files = serializers.SerializerMethodField()
+    folders_tree = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DrumKit
+        fields = [
+            'id',
+            'title',
+            'slug',
+            'description',
+            'author',
+            'cover_url',
+            'is_public',
+            'created_at',
+            'updated_at',
+            'downloads',
+            'files_count',
+            'download_url',
+            'folders_tree',
+            'files',
+        ]
+
+    def get_cover_url(self, obj):
+        if not obj.cover:
+            return None
+        request = self.context.get('request')
+        return request.build_absolute_uri(obj.cover.url) if request else obj.cover.url
+
+    def get_download_url(self, obj):
+        request = self.context.get('request')
+        path = reverse('drumkits-download', args=[obj.slug])
+        return request.build_absolute_uri(path) if request else path
+
+    def get_files(self, obj):
+        folder = (self.context.get('folder_filter') or '').strip()
+        files_qs = obj.files.all().order_by('relative_path')
+        if folder:
+            files_qs = files_qs.filter(folder_path=folder)
+        serializer = DrumKitFileSerializer(
+            files_qs,
+            many=True,
+            context=self.context,
+        )
+        return serializer.data
+
+    def get_folders_tree(self, obj):
+        tree = {}
+        for folder in obj.files.values_list('folder_path', flat=True):
+            path = (folder or '').strip('/')
+            parts = [segment for segment in path.split('/') if segment]
+            cursor = tree
+            current_path = []
+            for part in parts:
+                current_path.append(part)
+                full_path = '/'.join(current_path)
+                if part not in cursor:
+                    cursor[part] = {'name': part, 'path': full_path, 'children': {}}
+                cursor = cursor[part]['children']
+
+        def flatten(nodes):
+            output = []
+            for name in sorted(nodes.keys()):
+                node = nodes[name]
+                output.append(
+                    {
+                        'name': node['name'],
+                        'path': node['path'],
+                        'children': flatten(node['children']),
+                    }
+                )
+            return output
+
+        return flatten(tree)

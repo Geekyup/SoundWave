@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'apps.accounts',
+    'apps.drumkits',
     'apps.uploader',
     'apps.main',
     'apps.api',

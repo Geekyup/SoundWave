@@ -1,5 +1,5 @@
 import os
-from django.db.models import F
+from django.db.models import Count, F
 from django.http import FileResponse, Http404
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -8,12 +8,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
+from apps.drumkits.models import DrumKit
 from apps.uploader.models import Loop, Sample
 from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_waveform
 from apps.uploader.bpm_extraction import strip_bpm_from_name
 
 from .filters import LoopFilter, SampleFilter
-from .serializers import LoopSerializer, SampleSerializer, MeSerializer, RegisterSerializer
+from .serializers import (
+    DrumKitDetailSerializer,
+    DrumKitListSerializer,
+    LoopSerializer,
+    MeSerializer,
+    RegisterSerializer,
+    SampleSerializer,
+)
 
 
 def build_download_response(obj, model, cookie_prefix, request):
@@ -83,6 +91,55 @@ class SampleViewSet(viewsets.ModelViewSet):
     def download(self, request, pk=None):
         obj = self.get_object()
         return build_download_response(obj, Sample, 'downloaded_sample', request)
+
+
+class DrumKitViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = DrumKit.objects.all()
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'slug'
+    search_fields = ['title', 'author', 'description']
+    ordering_fields = ['created_at', 'downloads', 'title']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        qs = super().get_queryset().annotate(files_count=Count('files'))
+        if getattr(self, 'action', None) == 'retrieve':
+            qs = qs.prefetch_related('files')
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(is_public=True)
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return DrumKitDetailSerializer
+        return DrumKitListSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
+        context['folder_filter'] = self.request.query_params.get('folder', '')
+        return context
+
+    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.AllowAny])
+    def download(self, request, slug=None):
+        kit = self.get_object()
+        if not kit.archive_file:
+            raise Http404('Archive file not found')
+
+        try:
+            response = FileResponse(
+                kit.archive_file,
+                as_attachment=True,
+                filename=os.path.basename(kit.archive_file.name),
+            )
+        except FileNotFoundError:
+            raise Http404('Archive file not found')
+
+        cookie_key = f'downloaded_drumkit_{kit.id}'
+        if cookie_key not in request.COOKIES:
+            DrumKit.objects.filter(id=kit.id).update(downloads=F('downloads') + 1)
+            response.set_cookie(cookie_key, 'true', max_age=600)
+        return response
 
 
 class MeView(generics.RetrieveUpdateAPIView):

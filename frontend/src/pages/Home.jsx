@@ -210,6 +210,12 @@ export default function Home({ tab }) {
           >
             Loops
           </a>
+          <a
+            href="/drum-kits"
+            className="nav-link"
+          >
+            Drum Kits
+          </a>
           {me ? (
             <a href="/upload" className="nav-link">
               Upload

@@ -2,11 +2,12 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import LoopViewSet, SampleViewSet, MeView, RegisterView, WaveformCacheView
+from .views import DrumKitViewSet, LoopViewSet, MeView, RegisterView, SampleViewSet, WaveformCacheView
 
 router = DefaultRouter()
 router.register('loops', LoopViewSet, basename='loops')
 router.register('samples', SampleViewSet, basename='samples')
+router.register('drum-kits', DrumKitViewSet, basename='drumkits')
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth-register'),
