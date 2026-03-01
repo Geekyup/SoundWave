@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { listLoops } from '../api/loops.js';
 import { listSamples } from '../api/samples.js';
+import { getAccessToken } from '../api/client.js';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
@@ -59,6 +60,7 @@ export default function Home({ tab }) {
   });
 
   const isSamples = tab === 'samples';
+  const isAuthenticated = Boolean(getAccessToken());
   const currentPage = searchParams.get('page') || '1';
 
   useEffect(() => {
@@ -294,17 +296,27 @@ export default function Home({ tab }) {
                             </svg>
                           </button>
 
-                          <a
-                            href={`/api/samples/${sample.id}/download/`}
-                            className="download-btn-bottom"
-                            title="Download sample"
-                          >
-                            <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                              <polyline points="7 10 12 15 17 10"></polyline>
-                              <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                          </a>
+                          {isAuthenticated ? (
+                            <a
+                              href={`/api/samples/${sample.id}/download/`}
+                              className="download-btn-bottom"
+                              title="Download sample"
+                            >
+                              <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                              </svg>
+                            </a>
+                          ) : (
+                            <a
+                              href="/login"
+                              className="download-btn-bottom download-btn-bottom-login auth-required-download"
+                              title="Login to download"
+                            >
+                              Login
+                            </a>
+                          )}
                         </div>
                       </div>
                     );
@@ -481,17 +493,27 @@ export default function Home({ tab }) {
                           </div>
 
                           <div className="controls-actions">
-                            <a
-                              href={`/api/loops/${loop.id}/download/`}
-                              className="download-btn-rect"
-                              title="Download loop"
-                            >
-                              <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
-                                <line x1="4" y1="20" x2="20" y2="20" />
-                              </svg>
-                              Download
-                            </a>
+                            {isAuthenticated ? (
+                              <a
+                                href={`/api/loops/${loop.id}/download/`}
+                                className="download-btn-rect"
+                                title="Download loop"
+                              >
+                                <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+                                  <line x1="4" y1="20" x2="20" y2="20" />
+                                </svg>
+                                Download
+                              </a>
+                            ) : (
+                              <a
+                                href="/login"
+                                className="download-btn-rect auth-required-download"
+                                title="Login to download"
+                              >
+                                Login
+                              </a>
+                            )}
                             <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.audio_file} type="button">
                               Play
                             </button>

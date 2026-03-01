@@ -147,6 +147,23 @@
     color: white;
 }
 
+.download-btn-bottom-login {
+    width: auto;
+    min-width: 72px;
+    height: 40px;
+    border-radius: 999px;
+    padding: 0 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+}
+
+.download-btn-bottom-login:hover {
+    color: #fff;
+}
+
 .play-btn-rect {
     padding: 0.6rem 1.2rem;
     background: var(--color-accent);

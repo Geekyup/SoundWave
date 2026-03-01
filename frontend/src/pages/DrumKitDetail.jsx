@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { getDrumKit } from '../api/drumKits.js';
+import { getAccessToken } from '../api/client.js';
 import SiteHeader from '../components/SiteHeader.jsx';
 
 function renderFolderNodes(nodes, activeFolder, onSelectFolder) {
@@ -32,6 +33,7 @@ export default function DrumKitDetail() {
   const [error, setError] = useState('');
   const [playingFileId, setPlayingFileId] = useState(null);
   const audioRef = useRef(null);
+  const isAuthenticated = Boolean(getAccessToken());
 
   const selectedFolder = searchParams.get('folder') || '';
 
@@ -151,14 +153,20 @@ export default function DrumKitDetail() {
                     <a href="/drum-kits" className="drumkit-back-link">← Back to kits</a>
                     <div className="drumkit-detail-title-row">
                       <h1>{kit.title}</h1>
-                      {kit.download_url ? (
-                        <a href={kit.download_url} className="btn btn-primary">Download Kit</a>
-                      ) : null}
                     </div>
                     <p className="drumkit-detail-meta">
                       {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kit.files_count} files
                     </p>
                     {kit.description ? <p className="drumkit-detail-description">{kit.description}</p> : null}
+                    {kit.download_url ? (
+                      <div className="drumkit-detail-actions">
+                        {isAuthenticated ? (
+                          <a href={kit.download_url} className="btn btn-primary drumkit-download-btn">Download Kit</a>
+                        ) : (
+                          <a href="/login" className="btn btn-secondary drumkit-download-btn">Login</a>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </section>

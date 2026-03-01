@@ -63,7 +63,7 @@ class LoopViewSet(viewsets.ModelViewSet):
             name=strip_bpm_from_name(name) or name,
         )
 
-    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, pk=None):
         obj = self.get_object()
         return build_download_response(obj, Loop, 'downloaded_loop', request)
@@ -87,7 +87,7 @@ class SampleViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user.username)
 
-    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, pk=None):
         obj = self.get_object()
         return build_download_response(obj, Sample, 'downloaded_sample', request)
@@ -120,7 +120,7 @@ class DrumKitViewSet(viewsets.ReadOnlyModelViewSet):
         context['folder_filter'] = self.request.query_params.get('folder', '')
         return context
 
-    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.AllowAny])
+    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, slug=None):
         kit = self.get_object()
         if not kit.archive_file:

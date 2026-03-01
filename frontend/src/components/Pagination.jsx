@@ -22,6 +22,9 @@ export default function Pagination({ count }) {
   const pageRange = buildPageRange(currentPage, totalPages);
 
   const goToPage = page => {
+    if (typeof window !== 'undefined' && typeof window.__swStopAll === 'function') {
+      window.__swStopAll({ destroy: true });
+    }
     const next = new URLSearchParams(searchParams);
     next.set('page', String(page));
     setSearchParams(next, { replace: true });
