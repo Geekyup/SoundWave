@@ -21,3 +21,8 @@
     background: rgba(107, 127, 247, 0.15);
     color: #8b9fff;
 }
+
+.tag.keyword-tag {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d4dcff;
+}

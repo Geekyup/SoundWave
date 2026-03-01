@@ -12,11 +12,14 @@
     };
 
     const WS_OPTIONS = {
+        backend: 'WebAudio',
         waveColor: 'rgba(107, 127, 247, 0.4)',
         progressColor: 'rgba(107, 127, 247, 0.8)',
         cursorColor: 'rgba(107, 127, 247, 1)',
         barWidth: 3, barGap: 2, barHeight: 1.5,
-        responsive: true, normalize: true
+        responsive: true, normalize: true,
+        interact: true,
+        dragToSeek: true
     };
 
     function buildApiUrl(path) {
@@ -132,6 +135,10 @@
             currentPlayer = null;
         }
 
+        if (meta.waveformEl && meta.seekHandler) {
+            meta.waveformEl.removeEventListener('pointerup', meta.seekHandler);
+        }
+
         try {
             meta.player.destroy();
         } catch (_) {
@@ -186,7 +193,25 @@
         ws.cardId = cardId;
         const btn = card.querySelector('.play-btn-main, .play-btn-rect');
         players[cardId] = ws;
-        playersMeta[cardId] = {player: ws, btn, waveformEl: waveform, isLoop: false, userPaused: false};
+        const seekHandler = event => {
+            if (!ws || typeof ws.seekTo !== 'function') return;
+            const rect = waveform.getBoundingClientRect();
+            if (!rect.width) return;
+            const clientX = Number(event.clientX);
+            if (!Number.isFinite(clientX)) return;
+            const ratio = (clientX - rect.left) / rect.width;
+            ws.seekTo(Math.max(0, Math.min(1, ratio)));
+        };
+        waveform.addEventListener('pointerup', seekHandler);
+
+        playersMeta[cardId] = {
+            player: ws,
+            btn,
+            waveformEl: waveform,
+            seekHandler,
+            isLoop: false,
+            userPaused: false,
+        };
         setButtonIcon(btn, false);
 
         const isLoop = !card.closest('.sample-card')?.classList.contains('sample-item');

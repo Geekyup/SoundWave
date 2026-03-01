@@ -23,6 +23,27 @@ function getProfileHref(author) {
   return `/profile/${encodeURIComponent(username)}`;
 }
 
+function extractKeywordTags(value, max = 5) {
+  const raw = (value || '').trim();
+  if (!raw) return [];
+
+  const byDelimiter = raw.split(/[,;|]+/).map(item => item.trim()).filter(Boolean);
+  const tokens = byDelimiter.length > 1
+    ? byDelimiter
+    : raw.split(/\s+/).map(item => item.trim()).filter(Boolean);
+
+  const seen = new Set();
+  const result = [];
+  for (const token of tokens) {
+    const normalized = token.toLowerCase();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(token);
+    if (result.length >= max) break;
+  }
+  return result;
+}
+
 export default function Home({ tab }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [loops, setLoops] = useState([]);
@@ -487,6 +508,7 @@ export default function Home({ tab }) {
                   loops.map(loop => {
                     const loopAuthor = loop.author?.trim() || 'Unknown';
                     const loopAuthorHref = getProfileHref(loop.author);
+                    const keywordTags = extractKeywordTags(loop.keywords, 5);
 
                     return (
                       <div
@@ -558,6 +580,9 @@ export default function Home({ tab }) {
                           <span className="tag bpm-tag">{loop.bpm} bpm</span>
                           <span className="tag genre-tag">{loop.genre_display}</span>
                           <span className="tag size-tag">{loop.file_size}</span>
+                          {keywordTags.map(tag => (
+                            <span className="tag keyword-tag" key={`${loop.id}-${tag}`}>{tag}</span>
+                          ))}
                         </div>
                       </div>
                     );
