@@ -56,13 +56,13 @@ class DrumKitFileInline(admin.TabularInline):
 @admin.register(DrumKit)
 class DrumKitAdmin(admin.ModelAdmin):
     form = DrumKitAdminForm
-    list_display = ('title', 'author', 'is_public', 'file_count', 'created_at', 'downloads')
-    list_filter = ('is_public', 'created_at')
-    search_fields = ('title', 'author', 'slug')
+    list_display = ('title', 'author', 'genre', 'is_public', 'file_count', 'created_at', 'downloads')
+    list_filter = ('genre', 'is_public', 'created_at')
+    search_fields = ('title', 'author', 'slug', 'genre')
     readonly_fields = ('slug', 'created_at', 'updated_at', 'file_count')
     inlines = [DrumKitFileInline]
     fieldsets = (
-        (None, {'fields': ('title', 'slug', 'description', 'author', 'cover', 'is_public')}),
+        (None, {'fields': ('title', 'slug', 'description', 'author', 'genre', 'cover', 'is_public')}),
         ('Archive import', {'fields': ('archive_file', 'replace_files')}),
         ('Meta', {'fields': ('downloads', 'file_count', 'created_at', 'updated_at')}),
     )

@@ -3,11 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 
 import { listLoops } from '../api/loops.js';
 import { listSamples } from '../api/samples.js';
-import { getMe } from '../api/me.js';
-import { getAccessToken } from '../api/client.js';
-import { logout } from '../api/auth.js';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
+import SiteHeader from '../components/SiteHeader.jsx';
 import { GENRE_CHOICES, SAMPLE_TYPE_CHOICES } from '../constants.js';
 
 function formatDate(value) {
@@ -50,7 +48,6 @@ export default function Home({ tab }) {
   const [samples, setSamples] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [me, setMe] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [loopForm, setLoopForm] = useState({
     genre: '',
@@ -63,22 +60,6 @@ export default function Home({ tab }) {
 
   const isSamples = tab === 'samples';
   const currentPage = searchParams.get('page') || '1';
-
-  useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
-      setMe(null);
-      return;
-    }
-    getMe()
-      .then(profile => {
-        setMe(profile);
-      })
-      .catch(() => {
-        logout();
-        setMe(null);
-      });
-  }, []);
 
   useEffect(() => {
     setLoopForm({
@@ -209,66 +190,7 @@ export default function Home({ tab }) {
 
   return (
     <div className="page-wrapper">
-      <header className="header">
-        <div className="logo">
-          <a href="/">SoundWave</a>
-        </div>
-
-        <div className="search-bar">
-          <input type="text" placeholder="Search samples, loops..." />
-        </div>
-
-        <nav className="nav-menu">
-          <a
-            href="/samples"
-            className={`nav-link ${isSamples ? 'active' : ''}`}
-          >
-            Samples
-          </a>
-          <a
-            href="/loops"
-            className={`nav-link ${!isSamples ? 'active' : ''}`}
-          >
-            Loops
-          </a>
-          <a
-            href="/drum-kits"
-            className="nav-link"
-          >
-            Drum Kits
-          </a>
-          {me ? (
-            <a href="/upload" className="nav-link">
-              Upload
-            </a>
-          ) : null}
-        </nav>
-
-        <div className="auth-buttons">
-          {me ? (
-            <div className="user-menu">
-              <a href="/profile" className="btn btn-secondary">
-                {me.username || 'Profile'}
-              </a>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  logout();
-                  setMe(null);
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <>
-              <a href="/login" className="btn btn-secondary">Login</a>
-              <a href="/register" className="btn btn-primary">Register</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader active={isSamples ? 'samples' : 'loops'} />
 
       <div className="content-wrapper" id="catalog">
         <main className="main-content">

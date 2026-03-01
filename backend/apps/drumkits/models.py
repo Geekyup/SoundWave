@@ -4,6 +4,8 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 
+from apps.uploader.models import GENRE_CHOICES
+
 
 def drumkit_cover_upload_to(instance, filename):
     ext = os.path.splitext(filename or '')[1].lower() or '.jpg'
@@ -28,6 +30,7 @@ class DrumKit(models.Model):
     slug = models.SlugField(max_length=220, unique=True, blank=True)
     description = models.TextField(blank=True)
     author = models.CharField(max_length=100, blank=True, default='')
+    genre = models.CharField(max_length=50, choices=GENRE_CHOICES, default='other')
     cover = models.ImageField(upload_to=drumkit_cover_upload_to, blank=True, null=True)
     archive_file = models.FileField(upload_to=drumkit_archive_upload_to, blank=True, null=True)
     is_public = models.BooleanField(default=True)

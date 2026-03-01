@@ -154,6 +154,7 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class DrumKitListSerializer(serializers.ModelSerializer):
+    genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     cover_url = serializers.SerializerMethodField()
     files_count = serializers.IntegerField(read_only=True)
     download_url = serializers.SerializerMethodField()
@@ -166,6 +167,8 @@ class DrumKitListSerializer(serializers.ModelSerializer):
             'slug',
             'description',
             'author',
+            'genre',
+            'genre_display',
             'cover_url',
             'is_public',
             'created_at',
@@ -220,6 +223,7 @@ class DrumKitFileSerializer(serializers.ModelSerializer):
 
 
 class DrumKitDetailSerializer(serializers.ModelSerializer):
+    genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     cover_url = serializers.SerializerMethodField()
     files_count = serializers.IntegerField(read_only=True)
     download_url = serializers.SerializerMethodField()
@@ -234,6 +238,8 @@ class DrumKitDetailSerializer(serializers.ModelSerializer):
             'slug',
             'description',
             'author',
+            'genre',
+            'genre_display',
             'cover_url',
             'is_public',
             'created_at',

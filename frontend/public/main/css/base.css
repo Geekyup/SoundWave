@@ -70,3 +70,17 @@ textarea {
     margin: 0 auto;
     padding: 0 var(--space-lg);
 }
+
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-wrapper > .content-wrapper {
+    flex: 1 0 auto;
+}
+
+.page-wrapper > .footer {
+    margin-top: auto;
+}

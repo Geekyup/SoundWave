@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { listDrumKits } from '../api/drumKits.js';
-import { getAccessToken } from '../api/client.js';
 import Pagination from '../components/Pagination.jsx';
+import SiteHeader from '../components/SiteHeader.jsx';
 
 export default function DrumKits() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -44,8 +44,6 @@ export default function DrumKits() {
     };
   }, [page, query]);
 
-  const hasAuth = Boolean(getAccessToken());
-
   const handleSearchSubmit = e => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -62,38 +60,19 @@ export default function DrumKits() {
 
   return (
     <div className="page-wrapper">
-      <header className="header">
-        <div className="logo">
-          <a href="/">SoundWave</a>
-        </div>
-
-        <form className="search-bar" onSubmit={handleSearchSubmit}>
-          <input
-            type="text"
-            name="q"
-            defaultValue={query}
-            placeholder="Search drum kits..."
-          />
-        </form>
-
-        <nav className="nav-menu">
-          <a href="/samples" className="nav-link">Samples</a>
-          <a href="/loops" className="nav-link">Loops</a>
-          <a href="/drum-kits" className="nav-link active">Drum Kits</a>
-          {hasAuth ? <a href="/upload" className="nav-link">Upload</a> : null}
-        </nav>
-
-        <div className="auth-buttons">
-          {hasAuth ? (
-            <a href="/profile" className="btn btn-secondary">Profile</a>
-          ) : (
-            <>
-              <a href="/login" className="btn btn-secondary">Login</a>
-              <a href="/register" className="btn btn-primary">Register</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader
+        active="drum-kits"
+        searchContent={(
+          <form onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              name="q"
+              defaultValue={query}
+              placeholder="Search drum kits..."
+            />
+          </form>
+        )}
+      />
 
       <div className="content-wrapper">
         <main className="main-content drumkits-main">
@@ -132,7 +111,7 @@ export default function DrumKits() {
                           </p>
                           <div className="drumkit-card-footer">
                             <span className="drumkit-meta">{kit.files_count} files</span>
-                            <span className="drumkit-open">Open kit</span>
+                            <span className="drumkit-open">{kit.genre_display || kit.genre || 'Other'}</span>
                           </div>
                         </div>
                       </a>

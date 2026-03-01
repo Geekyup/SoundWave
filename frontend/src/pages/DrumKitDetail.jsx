@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { getDrumKit } from '../api/drumKits.js';
-import { getAccessToken } from '../api/client.js';
+import SiteHeader from '../components/SiteHeader.jsx';
 
 function renderFolderNodes(nodes, activeFolder, onSelectFolder) {
   if (!nodes?.length) return null;
@@ -117,37 +117,12 @@ export default function DrumKitDetail() {
     }
   };
 
-  const hasAuth = Boolean(getAccessToken());
-
   return (
     <div className="page-wrapper">
-      <header className="header">
-        <div className="logo">
-          <a href="/">SoundWave</a>
-        </div>
-
-        <div className="search-bar">
-          <input type="text" disabled value={kit?.title || 'Drum kit'} readOnly />
-        </div>
-
-        <nav className="nav-menu">
-          <a href="/samples" className="nav-link">Samples</a>
-          <a href="/loops" className="nav-link">Loops</a>
-          <a href="/drum-kits" className="nav-link active">Drum Kits</a>
-          {hasAuth ? <a href="/upload" className="nav-link">Upload</a> : null}
-        </nav>
-
-        <div className="auth-buttons">
-          {hasAuth ? (
-            <a href="/profile" className="btn btn-secondary">Profile</a>
-          ) : (
-            <>
-              <a href="/login" className="btn btn-secondary">Login</a>
-              <a href="/register" className="btn btn-primary">Register</a>
-            </>
-          )}
-        </div>
-      </header>
+      <SiteHeader
+        active="drum-kits"
+        searchContent={<input type="text" disabled value={kit?.title || 'Drum kit'} readOnly />}
+      />
 
       <div className="content-wrapper drumkit-detail-wrapper">
         <main className="main-content drumkit-detail-main">
@@ -181,7 +156,7 @@ export default function DrumKitDetail() {
                       ) : null}
                     </div>
                     <p className="drumkit-detail-meta">
-                      {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.files_count} files
+                      {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kit.files_count} files
                     </p>
                     {kit.description ? <p className="drumkit-detail-description">{kit.description}</p> : null}
                   </div>

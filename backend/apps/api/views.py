@@ -97,7 +97,7 @@ class DrumKitViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = DrumKit.objects.all()
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
-    search_fields = ['title', 'author', 'description']
+    search_fields = ['title', 'author', 'description', 'genre']
     ordering_fields = ['created_at', 'downloads', 'title']
     ordering = ['-created_at']
 
