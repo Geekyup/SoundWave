@@ -108,6 +108,16 @@
     color: var(--color-text-secondary);
 }
 
+#loop-filter-form .filter-group-bpm {
+    gap: 0.42rem;
+}
+
+#loop-filter-form .bpm-range-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
 #loop-filter-form input[type="number"],
 #loop-filter-form input[type="text"] {
     min-height: 42px;
@@ -119,6 +129,15 @@
     font-size: 0.92rem;
     outline: none;
     transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+}
+
+#loop-filter-form .bpm-range-inputs input[type="number"] {
+    text-align: left;
+}
+
+#loop-filter-form .bpm-range-inputs input::placeholder {
+    color: #a4a4a4;
+    opacity: 1;
 }
 
 

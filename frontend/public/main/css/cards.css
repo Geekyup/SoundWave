@@ -391,8 +391,8 @@
 /* Загрузки для SAMPLES (вверху карточки) */
 .sample-downloads-top {
     position: absolute;
-    top: 0.7rem;
-    right: 0.9rem;
+    top: 0.8rem;
+    right: 0.3rem;
     font-size: 0.95em;
     color: #7b7677;
     display: flex;

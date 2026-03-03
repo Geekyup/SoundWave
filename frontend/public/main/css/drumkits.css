@@ -73,7 +73,6 @@
     color: var(--color-text-primary);
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
     overflow: hidden;
 }
 
@@ -97,8 +96,8 @@
     background: rgba(107, 127, 247, 0.15);
     border: 1px solid rgba(107, 127, 247, 0.35);
     border-radius: 999px;
-    padding: 0.18rem 0.55rem;
-    font-size: 0.72rem;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
 }

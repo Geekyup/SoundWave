@@ -366,27 +366,28 @@ export default function Home({ tab }) {
                         direction="down"
                       />
                     </div>
-                    <div className="filter-group">
-                      <label htmlFor="bpm-min-filter">BPM from</label>
-                      <input
-                        type="number"
-                        name="bpm_min"
-                        id="bpm-min-filter"
-                        min="0"
-                        value={loopForm.bpm_min}
-                        onChange={e => handleLoopFormChange('bpm_min', e.target.value)}
-                      />
-                    </div>
-                    <div className="filter-group">
-                      <label htmlFor="bpm-max-filter">BPM to</label>
-                      <input
-                        type="number"
-                        name="bpm_max"
-                        id="bpm-max-filter"
-                        min="0"
-                        value={loopForm.bpm_max}
-                        onChange={e => handleLoopFormChange('bpm_max', e.target.value)}
-                      />
+                    <div className="filter-group filter-group-bpm">
+                      <label htmlFor="bpm-min-filter">BPM</label>
+                      <div className="bpm-range-inputs">
+                        <input
+                          type="number"
+                          name="bpm_min"
+                          id="bpm-min-filter"
+                          min="0"
+                          placeholder="from"
+                          value={loopForm.bpm_min}
+                          onChange={e => handleLoopFormChange('bpm_min', e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          name="bpm_max"
+                          id="bpm-max-filter"
+                          min="0"
+                          placeholder="to"
+                          value={loopForm.bpm_max}
+                          onChange={e => handleLoopFormChange('bpm_max', e.target.value)}
+                        />
+                      </div>
                     </div>
                     <div className="filter-group">
                       <label htmlFor="author-filter">Author</label>
@@ -424,10 +425,10 @@ export default function Home({ tab }) {
                       />
                     </div>
                     <div className="modal-actions">
-                      <button type="submit" className="loop-filter-btn loop-filter-btn-primary">Apply</button>
                       <button type="button" className="loop-filter-btn loop-filter-btn-secondary" id="reset-loop-filters" onClick={resetLoopFilters}>
                         Reset
                       </button>
+                      <button type="submit" className="loop-filter-btn loop-filter-btn-primary">Apply</button>
                     </div>
                   </form>
                 </div>

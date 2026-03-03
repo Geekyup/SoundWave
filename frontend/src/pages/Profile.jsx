@@ -220,10 +220,15 @@ export default function Profile() {
 
   if (!isAuth && !requestedUsername) {
     return (
-      <main className="profile-compact-layout">
-        <div className="profile-compact-card empty-state">
-          <p>Please log in to view your profile.</p>
-          <a href="/login" className="btn btn-primary">Login</a>
+      <main className="profile-compact-layout profile-auth-guard">
+        <div className="profile-compact-card profile-auth-card">
+          <p className="profile-auth-kicker">Account Required</p>
+          <h1>Profile is available after login</h1>
+          <p className="profile-auth-text">Please sign in to view and manage your profile.</p>
+          <div className="profile-auth-actions">
+            <a href="/login" className="btn btn-primary">Login</a>
+            <a href="/register" className="btn btn-secondary">Register</a>
+          </div>
         </div>
       </main>
     );
@@ -413,7 +418,7 @@ export default function Profile() {
 
           {!isPageLoading && !error ? (
             <>
-              <section className="profile-compact-card profile-summary">
+              <section className={`profile-compact-card profile-summary ${isOwnProfile ? 'is-own' : ''}`}>
                 <div className={`profile-summary-main ${isOwnProfile ? 'has-about' : ''}`}>
                   <div className="profile-summary-avatar">
                     {isOwnProfile && me?.avatar_url ? (
@@ -442,7 +447,7 @@ export default function Profile() {
                 </div>
                 {isOwnProfile ? (
                   <div className="profile-summary-side">
-                    <a href="/profile/edit" className="btn btn-secondary profile-summary-edit-btn">Edit profile</a>
+                    <a href="/profile/edit" className="profile-summary-edit-btn">Edit profile</a>
                   </div>
                 ) : null}
               </section>
