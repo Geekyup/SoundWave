@@ -189,10 +189,11 @@ export default function Profile() {
     setError('');
 
     const fetchData = async () => {
+      const listOwnedDrumKits = params => listDrumKits(params, { skipAuth: false });
       const [authorLoops, authorSamples, authorDrumKits] = await Promise.all([
         fetchAllAuthorItems(listLoops, profileUsername, { ordering: '-uploaded_at', include_waveform: '0' }),
         fetchAllAuthorItems(listSamples, profileUsername, { ordering: '-uploaded_at', include_waveform: '0' }),
-        fetchAllAuthorItems(listDrumKits, profileUsername, { ordering: '-created_at' }),
+        fetchAllAuthorItems(listOwnedDrumKits, profileUsername, { ordering: '-created_at' }),
       ]);
 
       if (!active) return;

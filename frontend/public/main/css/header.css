@@ -63,6 +63,11 @@
     margin: 0 var(--space-md);
 }
 
+.search-bar form {
+    width: 100%;
+    margin: 0;
+}
+
 .search-bar input {
     width: 100%;
     padding: 0.65rem 0.9rem;

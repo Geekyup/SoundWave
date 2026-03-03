@@ -45,6 +45,7 @@ function extractKeywordTags(value, max = 5) {
 
 export default function Home({ tab }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [searchText, setSearchText] = useState('');
   const [loops, setLoops] = useState([]);
   const [samples, setSamples] = useState([]);
   const [count, setCount] = useState(0);
@@ -62,6 +63,11 @@ export default function Home({ tab }) {
   const isSamples = tab === 'samples';
   const isAuthenticated = Boolean(getAccessToken());
   const currentPage = searchParams.get('page') || '1';
+  const query = searchParams.get('q') || '';
+
+  useEffect(() => {
+    setSearchText(query);
+  }, [query]);
 
   useEffect(() => {
     setLoopForm({
@@ -98,6 +104,7 @@ export default function Home({ tab }) {
           ...sampleFilters,
           page: currentPage,
         };
+        if (query) params.search = query;
         const data = await listSamples(params);
         if (!active) return;
         setSamples(data.results || []);
@@ -110,6 +117,7 @@ export default function Home({ tab }) {
         if (loopFilters.author) params.author = loopFilters.author;
         if (loopFilters.keywords) params.keywords = loopFilters.keywords;
         if (loopFilters.sort) params.ordering = loopFilters.sort;
+        if (query) params.search = query;
         const data = await listLoops(params);
         if (!active) return;
         setLoops(data.results || []);
@@ -132,7 +140,7 @@ export default function Home({ tab }) {
     return () => {
       active = false;
     };
-  }, [isSamples, sampleFilters, loopFilters, currentPage]);
+  }, [isSamples, sampleFilters, loopFilters, currentPage, query]);
 
   useEffect(() => {
     if (window.__swInit) {
@@ -146,6 +154,19 @@ export default function Home({ tab }) {
       next.set(field, value);
     } else {
       next.delete(field);
+    }
+    next.set('page', '1');
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleSearchSubmit = e => {
+    e.preventDefault();
+    const value = searchText.trim();
+    const next = new URLSearchParams(searchParams);
+    if (value) {
+      next.set('q', value);
+    } else {
+      next.delete('q');
     }
     next.set('page', '1');
     setSearchParams(next, { replace: true });
@@ -192,7 +213,20 @@ export default function Home({ tab }) {
 
   return (
     <div className="page-wrapper">
-      <SiteHeader active={isSamples ? 'samples' : 'loops'} />
+      <SiteHeader
+        active={isSamples ? 'samples' : 'loops'}
+        searchContent={(
+          <form onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              name="q"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              placeholder={isSamples ? 'Search samples...' : 'Search loops...'}
+            />
+          </form>
+        )}
+      />
 
       <div className="content-wrapper" id="catalog">
         <main className="main-content">
