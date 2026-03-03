@@ -230,6 +230,7 @@ export default function Profile() {
   }
 
   const displayUsername = profileUsername || 'User';
+  const profileBio = isOwnProfile ? (me?.bio || '').trim() : '';
   const isPageLoading = loading || (!requestedUsername && isAuth && meLoading);
   const totalLoops = loops.length;
   const totalSamples = samples.length;
@@ -413,7 +414,7 @@ export default function Profile() {
           {!isPageLoading && !error ? (
             <>
               <section className="profile-compact-card profile-summary">
-                <div className="profile-summary-main">
+                <div className={`profile-summary-main ${isOwnProfile ? 'has-about' : ''}`}>
                   <div className="profile-summary-avatar">
                     {isOwnProfile && me?.avatar_url ? (
                       <img src={me.avatar_url} alt={`${displayUsername} avatar`} />
@@ -430,6 +431,14 @@ export default function Profile() {
                       <span>{totalDownloads} downloads</span>
                     </div>
                   </div>
+                  {isOwnProfile ? (
+                    <div className="profile-summary-about">
+                      <p className="profile-summary-about-label">Description</p>
+                      <p className={`profile-summary-about-text ${profileBio ? '' : 'is-empty'}`}>
+                        {profileBio || 'No description yet. Add it in Edit profile.'}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
                 {isOwnProfile ? (
                   <div className="profile-summary-side">
@@ -667,12 +676,6 @@ export default function Profile() {
           ) : null}
         </main>
       </div>
-
-      <footer className="footer">
-        <div className="footer-bottom">
-          <p>&copy; 2025 SoundWave. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

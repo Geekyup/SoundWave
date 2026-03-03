@@ -9,6 +9,10 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(107, 127, 247, 0.12), transparent 42%),
+        radial-gradient(circle at 88% 0%, rgba(107, 127, 247, 0.08), transparent 36%),
+        var(--color-bg-primary);
 }
 
 .profile-compact-content {
@@ -25,11 +29,11 @@
 }
 
 .profile-compact-card {
-    background: var(--color-bg-card);
-    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, rgba(42, 42, 42, 0.96), rgba(34, 34, 34, 0.96));
+    border: 1px solid rgba(255, 255, 255, 0.11);
     border-radius: var(--radius-md);
     padding: var(--space-lg);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
 }
 
 .profile-summary {
@@ -37,14 +41,23 @@
     align-items: center;
     justify-content: flex-start;
     gap: var(--space-lg);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
 }
 
 .profile-summary-main {
     flex: 1;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
     align-items: center;
     gap: var(--space-md);
     min-width: 0;
+}
+
+.profile-summary-main.has-about {
+    grid-template-columns: auto auto minmax(220px, 340px);
+    gap: 0.8rem;
 }
 
 .profile-summary-avatar {
@@ -52,7 +65,7 @@
     height: 72px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    background: #2a2a2a;
+    background: linear-gradient(145deg, #373737, #2b2b2b);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -70,6 +83,9 @@
 
 .profile-summary-meta {
     min-width: 0;
+    width: fit-content;
+    max-width: 260px;
+    justify-self: start;
 }
 
 .profile-summary-meta h1 {
@@ -99,7 +115,8 @@
 }
 
 .profile-summary-badges span {
-    border: 1px solid rgba(255, 255, 255, 0.11);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 999px;
     padding: 0.2rem 0.65rem;
     font-size: 0.78rem;
@@ -110,30 +127,70 @@
 .profile-summary-side {
     margin-left: auto;
     display: flex;
-    align-items: flex-end;
-    align-self: flex-end;
-    padding-bottom: 0.15rem;
+    align-items: center;
+    justify-content: flex-end;
+    width: auto;
+    align-self: center;
+    padding-bottom: 0;
+}
+
+.profile-summary-about {
+    min-width: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+    padding-left: 0.8rem;
+}
+
+.profile-summary-about-label {
+    margin: 0 0 0.28rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    font-weight: 700;
+}
+
+.profile-summary-about-text {
+    margin: 0;
+    color: #d9d9d9;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.profile-summary-about-text.is-empty {
+    color: var(--color-text-secondary);
+    font-style: italic;
 }
 
 .profile-summary-edit-btn {
     min-height: 30px;
-    padding: 0.34rem 0.66rem;
-    font-size: 0.8rem;
+    padding: 0.36rem 0.72rem;
+    font-size: 0.81rem;
     width: auto;
-    color: var(--color-text-secondary);
-    border-color: rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.02);
+    color: var(--color-text-primary);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
     transition: none;
+    width: auto !important;
+    max-width: none !important;
+    flex: 0 0 auto;
+    align-self: center;
+    white-space: nowrap;
 }
 
 .profile-summary-edit-btn:hover,
 .profile-summary-edit-btn:focus-visible,
 .profile-summary-edit-btn:active {
     color: var(--color-text-primary);
-    border-color: rgba(255, 255, 255, 0.26);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.38);
+    background: rgba(255, 255, 255, 0.16);
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
 }
 
 .profile-summary-edit-btn:focus-visible {
@@ -202,7 +259,8 @@
 }
 
 .profile-stat-card:hover {
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(180deg, rgba(46, 46, 46, 0.98), rgba(36, 36, 36, 0.98));
     transform: translateY(-1px);
 }
 
@@ -215,7 +273,7 @@
 .profile-stat-icon {
     width: 1.1rem;
     height: 1.1rem;
-    color: var(--color-text-secondary);
+    color: #a9b6ff;
     flex-shrink: 0;
 }
 
@@ -243,7 +301,7 @@
     font-size: 0.92rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-text-secondary);
+    color: #aeb9ff;
     font-weight: 600;
     padding-left: 0.25rem;
 }
@@ -305,9 +363,9 @@
     justify-content: space-between;
     gap: var(--space-sm);
     font-size: 0.92rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.035);
     padding: 0.55rem 0.72rem 0.55rem 2.2rem;
 }
 
@@ -366,8 +424,8 @@
     min-height: 36px;
     padding: 0.45rem 0.7rem;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--color-text-secondary);
     font-size: 0.86rem;
     font-weight: 600;
@@ -376,13 +434,13 @@
 }
 
 .profile-manage-tab:hover {
-    border-color: rgba(107, 127, 247, 0.45);
+    border-color: rgba(255, 255, 255, 0.3);
     color: var(--color-text-primary);
 }
 
 .profile-manage-tab.active {
-    border-color: rgba(107, 127, 247, 0.6);
-    background: rgba(107, 127, 247, 0.16);
+    border-color: rgba(255, 255, 255, 0.38);
+    background: rgba(255, 255, 255, 0.14);
     color: var(--color-text-primary);
 }
 
@@ -423,9 +481,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.04);
     padding: 0.55rem 0.7rem;
 }
 
@@ -476,15 +534,42 @@
 @media (max-width: 1024px) {
     .profile-summary {
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
+    }
+
+    .profile-summary-main.has-about {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
     }
 
     .profile-summary-side {
-        width: 100%;
-        margin-left: 0;
+        margin-left: auto;
+        width: auto;
         justify-content: flex-end;
         align-self: auto;
         padding-bottom: 0;
+        align-items: flex-end;
+    }
+
+    .profile-summary-meta {
+        max-width: 100%;
+    }
+
+    .profile-summary-about {
+        grid-column: 2;
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-left: 0;
+        padding-top: 0.45rem;
+        margin-top: 0.2rem;
+    }
+
+    .profile-summary-about-text {
+        text-align: left;
+    }
+
+    .profile-summary-edit-btn {
+        align-self: auto;
     }
 }
 
