@@ -14,3 +14,12 @@ export async function listSamples(params = {}) {
   }
   return response.json();
 }
+
+export async function deleteSample(sampleId) {
+  const response = await apiFetch(`/api/samples/${encodeURIComponent(sampleId)}/`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete sample');
+  }
+}

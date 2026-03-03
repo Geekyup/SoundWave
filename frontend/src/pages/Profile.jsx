@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getMe } from '../api/me.js';
-import { listLoops } from '../api/loops.js';
-import { listSamples } from '../api/samples.js';
-import { getAccessToken } from '../api/client.js';
 import { logout } from '../api/auth.js';
+import { getAccessToken } from '../api/client.js';
+import { deleteDrumKit, listDrumKits } from '../api/drumKits.js';
+import { deleteLoop, listLoops } from '../api/loops.js';
+import { getMe } from '../api/me.js';
+import { deleteSample, listSamples } from '../api/samples.js';
 
 const MAX_PROFILE_FETCH_PAGES = 30;
 
@@ -23,6 +24,10 @@ function getInitial(username) {
 
 function normalizeAuthor(value) {
   return (value || '').trim().toLowerCase();
+}
+
+function getItemTimestamp(item) {
+  return item?.uploaded_at || item?.created_at || '';
 }
 
 function sumDownloads(items) {
@@ -60,7 +65,7 @@ function getTopGenre(items) {
 function getLatestDate(items) {
   let latest = '';
   items.forEach(item => {
-    const raw = item.uploaded_at || '';
+    const raw = getItemTimestamp(item);
     if (!raw) return;
     if (!latest || new Date(raw) > new Date(latest)) {
       latest = raw;
@@ -73,12 +78,12 @@ function countRecentUploads(items, days = 30) {
   const now = Date.now();
   const threshold = now - (days * 24 * 60 * 60 * 1000);
   return items.filter(item => {
-    const date = new Date(item.uploaded_at || '').getTime();
+    const date = new Date(getItemTimestamp(item)).getTime();
     return Number.isFinite(date) && date >= threshold;
   }).length;
 }
 
-async function fetchAllAuthorItems(listFn, username) {
+async function fetchAllAuthorItems(listFn, username, baseParams = {}) {
   const normalized = normalizeAuthor(username);
   if (!normalized) return [];
 
@@ -87,9 +92,8 @@ async function fetchAllAuthorItems(listFn, username) {
 
   for (let index = 0; index < MAX_PROFILE_FETCH_PAGES; index += 1) {
     const data = await listFn({
+      ...baseParams,
       author: username,
-      ordering: '-uploaded_at',
-      include_waveform: '0',
       page,
     });
     const chunk = Array.isArray(data?.results) ? data.results : [];
@@ -123,8 +127,11 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [loops, setLoops] = useState([]);
   const [samples, setSamples] = useState([]);
-  const [topLoops, setTopLoops] = useState([]);
-  const [topSamples, setTopSamples] = useState([]);
+  const [drumKits, setDrumKits] = useState([]);
+  const [activeManageTab, setActiveManageTab] = useState('sample');
+  const [manageNotice, setManageNotice] = useState('');
+  const [manageNoticeType, setManageNoticeType] = useState('');
+  const [deletingKey, setDeletingKey] = useState('');
 
   const token = getAccessToken();
   const isAuth = Boolean(token);
@@ -172,8 +179,7 @@ export default function Profile() {
     if (!profileUsername) {
       setLoops([]);
       setSamples([]);
-      setTopLoops([]);
-      setTopSamples([]);
+      setDrumKits([]);
       setLoading(false);
       return;
     }
@@ -183,24 +189,16 @@ export default function Profile() {
     setError('');
 
     const fetchData = async () => {
-      const [authorLoops, authorSamples] = await Promise.all([
-        fetchAllAuthorItems(listLoops, profileUsername),
-        fetchAllAuthorItems(listSamples, profileUsername),
+      const [authorLoops, authorSamples, authorDrumKits] = await Promise.all([
+        fetchAllAuthorItems(listLoops, profileUsername, { ordering: '-uploaded_at', include_waveform: '0' }),
+        fetchAllAuthorItems(listSamples, profileUsername, { ordering: '-uploaded_at', include_waveform: '0' }),
+        fetchAllAuthorItems(listDrumKits, profileUsername, { ordering: '-created_at' }),
       ]);
 
       if (!active) return;
       setLoops(authorLoops);
       setSamples(authorSamples);
-      setTopLoops(
-        [...authorLoops]
-          .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-          .slice(0, 5),
-      );
-      setTopSamples(
-        [...authorSamples]
-          .sort((a, b) => (b.downloads || 0) - (a.downloads || 0))
-          .slice(0, 5),
-      );
+      setDrumKits(authorDrumKits);
     };
 
     fetchData()
@@ -208,8 +206,7 @@ export default function Profile() {
         if (!active) return;
         setLoops([]);
         setSamples([]);
-        setTopLoops([]);
-        setTopSamples([]);
+        setDrumKits([]);
         setError('Failed to load profile data.');
       })
       .finally(() => {
@@ -236,25 +233,165 @@ export default function Profile() {
   const isPageLoading = loading || (!requestedUsername && isAuth && meLoading);
   const totalLoops = loops.length;
   const totalSamples = samples.length;
-  const totalUploads = totalLoops + totalSamples;
+  const totalDrumKits = drumKits.length;
+  const totalUploads = totalLoops + totalSamples + totalDrumKits;
   const hasUploads = totalUploads > 0;
-  const allItems = [...loops, ...samples];
-  const totalDownloads = sumDownloads(loops) + sumDownloads(samples);
+  const allItems = [...loops, ...samples, ...drumKits];
+  const totalDownloads = sumDownloads(loops) + sumDownloads(samples) + sumDownloads(drumKits);
   const averageDownloads = totalUploads ? (totalDownloads / totalUploads).toFixed(1) : '0';
   const uploadsLast30 = countRecentUploads(allItems, 30);
   const latestUploadAt = getLatestDate(allItems);
-  const topDownloads = Math.max(topLoops[0]?.downloads || 0, topSamples[0]?.downloads || 0);
+  const topDownloads = allItems.reduce((acc, item) => Math.max(acc, item.downloads || 0), 0);
   const topGenre = getTopGenre(allItems);
   const bpmValues = loops
     .map(item => Number(item.bpm))
     .filter(value => Number.isFinite(value) && value > 0);
   const medianLoopBpm = getMedian(bpmValues);
+  const topLoops = useMemo(
+    () => [...loops].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
+    [loops],
+  );
+  const topSamples = useMemo(
+    () => [...samples].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
+    [samples],
+  );
+
+  const handleDeleteLoop = async loopId => {
+    if (!isOwnProfile) return;
+    if (!window.confirm('Delete this loop?')) return;
+    const rowKey = `loop-${loopId}`;
+    setDeletingKey(rowKey);
+    setManageNotice('');
+    try {
+      await deleteLoop(loopId);
+      setLoops(prev => prev.filter(item => item.id !== loopId));
+      setManageNoticeType('success');
+      setManageNotice('Loop deleted.');
+    } catch (_) {
+      setManageNoticeType('error');
+      setManageNotice('Failed to delete loop.');
+    } finally {
+      setDeletingKey('');
+    }
+  };
+
+  const handleDeleteSample = async sampleId => {
+    if (!isOwnProfile) return;
+    if (!window.confirm('Delete this sample?')) return;
+    const rowKey = `sample-${sampleId}`;
+    setDeletingKey(rowKey);
+    setManageNotice('');
+    try {
+      await deleteSample(sampleId);
+      setSamples(prev => prev.filter(item => item.id !== sampleId));
+      setManageNoticeType('success');
+      setManageNotice('Sample deleted.');
+    } catch (_) {
+      setManageNoticeType('error');
+      setManageNotice('Failed to delete sample.');
+    } finally {
+      setDeletingKey('');
+    }
+  };
+
+  const handleDeleteDrumKit = async slug => {
+    if (!isOwnProfile) return;
+    if (!window.confirm('Delete this drum kit?')) return;
+    const rowKey = `drumkit-${slug}`;
+    setDeletingKey(rowKey);
+    setManageNotice('');
+    try {
+      await deleteDrumKit(slug);
+      setDrumKits(prev => prev.filter(item => item.slug !== slug));
+      setManageNoticeType('success');
+      setManageNotice('Drum kit deleted.');
+    } catch (_) {
+      setManageNoticeType('error');
+      setManageNotice('Failed to delete drum kit.');
+    } finally {
+      setDeletingKey('');
+    }
+  };
+
+  const renderManageContent = () => {
+    if (activeManageTab === 'sample') {
+      if (!samples.length) return <p className="profile-manage-empty">No samples uploaded yet.</p>;
+      return (
+        <ul className="profile-manage-list">
+          {samples.map(sample => (
+            <li key={`sample-${sample.id}`} className="profile-manage-row">
+              <div className="profile-manage-meta">
+                <strong>{sample.name}</strong>
+                <span>{formatDate(sample.uploaded_at)} • {sample.downloads || 0} downloads</span>
+              </div>
+              <button
+                type="button"
+                className="profile-manage-delete-btn"
+                disabled={deletingKey === `sample-${sample.id}`}
+                onClick={() => handleDeleteSample(sample.id)}
+              >
+                {deletingKey === `sample-${sample.id}` ? 'Deleting...' : 'Delete'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    if (activeManageTab === 'loop') {
+      if (!loops.length) return <p className="profile-manage-empty">No loops uploaded yet.</p>;
+      return (
+        <ul className="profile-manage-list">
+          {loops.map(loop => (
+            <li key={`loop-${loop.id}`} className="profile-manage-row">
+              <div className="profile-manage-meta">
+                <strong>{loop.name}</strong>
+                <span>{formatDate(loop.uploaded_at)} • {loop.downloads || 0} downloads</span>
+              </div>
+              <button
+                type="button"
+                className="profile-manage-delete-btn"
+                disabled={deletingKey === `loop-${loop.id}`}
+                onClick={() => handleDeleteLoop(loop.id)}
+              >
+                {deletingKey === `loop-${loop.id}` ? 'Deleting...' : 'Delete'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    if (!drumKits.length) return <p className="profile-manage-empty">No drum kits uploaded yet.</p>;
+    return (
+      <ul className="profile-manage-list">
+        {drumKits.map(kit => (
+          <li key={`drumkit-${kit.slug}`} className="profile-manage-row">
+            <div className="profile-manage-meta">
+              <strong>{kit.title}</strong>
+              <span>{formatDate(kit.created_at)} • {kit.files_count || 0} files</span>
+            </div>
+            <button
+              type="button"
+              className="profile-manage-delete-btn"
+              disabled={deletingKey === `drumkit-${kit.slug}`}
+              onClick={() => handleDeleteDrumKit(kit.slug)}
+            >
+              {deletingKey === `drumkit-${kit.slug}` ? 'Deleting...' : 'Delete'}
+            </button>
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
     <div className="page-wrapper profile-page">
       <header className="header">
-        <div className="logo">
-          <a href="/">SoundWave</a>
+        <div className="header-inner">
+          <div className="logo">
+            <a href="/">SoundWave</a>
+          </div>
         </div>
       </header>
 
@@ -289,7 +426,7 @@ export default function Profile() {
                     <p>{isOwnProfile ? 'Personal dashboard' : 'Public profile statistics'}</p>
                     <span>Last upload: {formatDate(latestUploadAt)}</span>
                     <div className="profile-summary-badges">
-                      <span>{totalUploads} tracks</span>
+                      <span>{totalUploads} uploads</span>
                       <span>{totalDownloads} downloads</span>
                     </div>
                   </div>
@@ -299,7 +436,6 @@ export default function Profile() {
                     <a href="/profile/edit" className="btn btn-secondary profile-summary-edit-btn">Edit profile</a>
                   </div>
                 ) : null}
-
               </section>
 
               <div className="profile-section-title">
@@ -329,7 +465,7 @@ export default function Profile() {
                   )}
                 />
                 <StatCard
-                  label="Avg downloads / track"
+                  label="Avg downloads / upload"
                   value={averageDownloads}
                   icon={(
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
@@ -369,6 +505,16 @@ export default function Profile() {
                   )}
                 />
                 <StatCard
+                  label="Drum kits"
+                  value={totalDrumKits}
+                  icon={(
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
+                      <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                      <path d="M3 9h18M8 4v16"></path>
+                    </svg>
+                  )}
+                />
+                <StatCard
                   label="Top downloads"
                   value={topDownloads}
                   icon={(
@@ -402,7 +548,7 @@ export default function Profile() {
                   <h2>Profile is empty</h2>
                   <p>
                     {isOwnProfile
-                      ? 'Upload your first loop or sample to see analytics here.'
+                      ? 'Upload your first loop, sample or drum kit to see analytics here.'
                       : 'This user has no public uploads yet.'}
                   </p>
                   {isOwnProfile ? (
@@ -462,21 +608,59 @@ export default function Profile() {
                 </>
               )}
 
+              {isOwnProfile ? (
+                <section className="profile-compact-card profile-manage-panel">
+                  <div className="profile-manage-head">
+                    <h2>Manage Uploads</h2>
+                    <p>Delete your content from profile.</p>
+                  </div>
+                  <div className="profile-manage-tabs" role="tablist" aria-label="My uploads">
+                    <button
+                      type="button"
+                      className={`profile-manage-tab ${activeManageTab === 'sample' ? 'active' : ''}`}
+                      onClick={() => setActiveManageTab('sample')}
+                    >
+                      My Sample
+                    </button>
+                    <button
+                      type="button"
+                      className={`profile-manage-tab ${activeManageTab === 'loop' ? 'active' : ''}`}
+                      onClick={() => setActiveManageTab('loop')}
+                    >
+                      My Loop
+                    </button>
+                    <button
+                      type="button"
+                      className={`profile-manage-tab ${activeManageTab === 'drumkit' ? 'active' : ''}`}
+                      onClick={() => setActiveManageTab('drumkit')}
+                    >
+                      My Drum Kit
+                    </button>
+                  </div>
+
+                  {manageNotice ? (
+                    <div className={`profile-manage-notice ${manageNoticeType === 'error' ? 'error' : 'success'}`}>
+                      {manageNotice}
+                    </div>
+                  ) : null}
+
+                  {renderManageContent()}
+                </section>
+              ) : null}
+
               <section className="profile-bottom-actions">
                 <a href="/" className="btn btn-secondary profile-action-btn">Home</a>
                 {isOwnProfile ? (
-                  <>
-                    <button
-                      type="button"
-                      className="btn btn-secondary profile-action-btn"
-                      onClick={() => {
-                        logout();
-                        window.location.href = '/';
-                      }}
-                    >
-                      Logout
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    className="btn btn-secondary profile-action-btn"
+                    onClick={() => {
+                      logout();
+                      window.location.href = '/';
+                    }}
+                  >
+                    Logout
+                  </button>
                 ) : null}
               </section>
             </>

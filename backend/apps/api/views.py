@@ -1,5 +1,5 @@
 import os
-from django.db.models import Count, F
+from django.db.models import Count, F, Q
 from django.http import FileResponse, Http404
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -14,6 +14,7 @@ from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_wave
 from apps.uploader.bpm_extraction import strip_bpm_from_name
 
 from .filters import LoopFilter, SampleFilter
+from .permissions import IsAuthorOrStaffOrReadOnly
 from .serializers import (
     DrumKitDetailSerializer,
     DrumKitListSerializer,
@@ -44,7 +45,7 @@ def build_download_response(obj, model, cookie_prefix, request):
 class LoopViewSet(viewsets.ModelViewSet):
     queryset = Loop.objects.all()
     serializer_class = LoopSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
     parser_classes = [MultiPartParser, FormParser]
     filterset_class = LoopFilter
     search_fields = ['name', 'author', 'keywords']
@@ -72,7 +73,7 @@ class LoopViewSet(viewsets.ModelViewSet):
 class SampleViewSet(viewsets.ModelViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
     parser_classes = [MultiPartParser, FormParser]
     filterset_class = SampleFilter
     search_fields = ['name', 'author']
@@ -93,10 +94,11 @@ class SampleViewSet(viewsets.ModelViewSet):
         return build_download_response(obj, Sample, 'downloaded_sample', request)
 
 
-class DrumKitViewSet(viewsets.ReadOnlyModelViewSet):
+class DrumKitViewSet(viewsets.ModelViewSet):
     queryset = DrumKit.objects.all()
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
     lookup_field = 'slug'
+    http_method_names = ['get', 'head', 'options', 'delete']
     search_fields = ['title', 'author', 'description', 'genre']
     ordering_fields = ['created_at', 'downloads', 'title']
     ordering = ['-created_at']
@@ -105,8 +107,16 @@ class DrumKitViewSet(viewsets.ReadOnlyModelViewSet):
         qs = super().get_queryset().annotate(files_count=Count('files'))
         if getattr(self, 'action', None) == 'retrieve':
             qs = qs.prefetch_related('files')
+        author_filter = (self.request.query_params.get('author') or '').strip()
+        if author_filter:
+            qs = qs.filter(author__iexact=author_filter)
+
         if self.request.user.is_staff:
             return qs
+
+        if self.request.user.is_authenticated:
+            return qs.filter(Q(is_public=True) | Q(author__iexact=self.request.user.username))
+
         return qs.filter(is_public=True)
 
     def get_serializer_class(self):

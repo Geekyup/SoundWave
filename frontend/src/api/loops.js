@@ -14,3 +14,12 @@ export async function listLoops(params = {}) {
   }
   return response.json();
 }
+
+export async function deleteLoop(loopId) {
+  const response = await apiFetch(`/api/loops/${encodeURIComponent(loopId)}/`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete loop');
+  }
+}
