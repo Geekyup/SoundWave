@@ -233,18 +233,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 34px;
-    padding: 0.38rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.03);
-    color: #d4d4d4;
-    font-size: 0.78rem;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #bfc4cf;
+    font-size: 0.8rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
     line-height: 1;
     text-decoration: none;
     box-shadow: none;
-    transition: background var(--transition-base), border-color var(--transition-base), color var(--transition-base);
+    border-bottom: 1px solid rgba(191, 196, 207, 0.42);
+    transition: color var(--transition-base), border-color var(--transition-base);
     flex: 0 0 auto;
     align-self: center;
     white-space: nowrap;
@@ -252,19 +254,18 @@
 
 .profile-summary-edit-btn:hover,
 .profile-summary-edit-btn:focus-visible {
-    color: #ececec;
-    border-color: rgba(255, 255, 255, 0.28);
-    background: rgba(255, 255, 255, 0.06);
-    transform: none;
+    color: #e6e9ef;
+    border-bottom-color: rgba(230, 233, 239, 0.72);
 }
 
 .profile-summary-edit-btn:active {
-    background: rgba(255, 255, 255, 0.08);
+    color: #f1f3f8;
+    border-bottom-color: rgba(241, 243, 248, 0.82);
 }
 
 .profile-summary-edit-btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.14);
+    box-shadow: none;
 }
 
 .profile-action-btn {

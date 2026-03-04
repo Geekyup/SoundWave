@@ -147,6 +147,7 @@
 
     function setButtonIcon(btn, playing) {
         if (!btn) return;
+        btn.classList.toggle('is-playing', Boolean(playing));
         btn.innerHTML = btn.classList.contains('play-btn-rect') 
             ? (playing ? ICONS.pauseRect : ICONS.playRect)
             : (playing ? ICONS.pause : ICONS.play);
@@ -565,6 +566,27 @@
                 e.preventDefault();
                 e.stopPropagation();
                 handleDownload(dlBtn, dlBtn.classList.contains('download-btn-bottom') ? 'sample' : 'loop');
+                return;
+            }
+
+            const sampleCard = e.target.closest('.sample-card.sample-item[data-card-id]');
+            if (sampleCard) {
+                // Keep native behavior for interactive elements inside the card.
+                if (e.target.closest('a, button, input, textarea, select, label')) {
+                    return;
+                }
+
+                initPlayer(sampleCard);
+                const cardId = sampleCard.dataset.cardId;
+                const meta = playersMeta[cardId];
+                if (!meta?.player) return;
+
+                // Clicking sample card always (re)starts playback from the beginning.
+                if (!applySeek(meta.player, 0)) {
+                    meta.pendingSeek = 0;
+                }
+                meta.userPaused = false;
+                requestPlay(meta, {allowRetry: true, fromUserGesture: true});
             }
         });
     }
