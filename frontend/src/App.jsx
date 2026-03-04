@@ -1,14 +1,15 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 
 import Home from './pages/Home.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import Profile from './pages/Profile.jsx';
-import ProfileEdit from './pages/ProfileEdit.jsx';
-import Upload from './pages/Upload.jsx';
-import DrumKits from './pages/DrumKits.jsx';
-import DrumKitDetail from './pages/DrumKitDetail.jsx';
+
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Register = lazy(() => import('./pages/Register.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const ProfileEdit = lazy(() => import('./pages/ProfileEdit.jsx'));
+const Upload = lazy(() => import('./pages/Upload.jsx'));
+const DrumKits = lazy(() => import('./pages/DrumKits.jsx'));
+const DrumKitDetail = lazy(() => import('./pages/DrumKitDetail.jsx'));
 
 function RouteAudioGuard() {
   const location = useLocation();
@@ -26,19 +27,21 @@ export default function App() {
   return (
     <>
       <RouteAudioGuard />
-      <Routes>
-        <Route path="/" element={<Home tab="loops" />} />
-        <Route path="/loops" element={<Home tab="loops" />} />
-        <Route path="/samples" element={<Home tab="samples" />} />
-        <Route path="/drum-kits" element={<DrumKits />} />
-        <Route path="/drum-kits/:slug" element={<DrumKitDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/:username" element={<Profile />} />
-        <Route path="/profile/edit" element={<ProfileEdit />} />
-        <Route path="/upload" element={<Upload />} />
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Home tab="loops" />} />
+          <Route path="/loops" element={<Home tab="loops" />} />
+          <Route path="/samples" element={<Home tab="samples" />} />
+          <Route path="/drum-kits" element={<DrumKits />} />
+          <Route path="/drum-kits/:slug" element={<DrumKitDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:username" element={<Profile />} />
+          <Route path="/profile/edit" element={<ProfileEdit />} />
+          <Route path="/upload" element={<Upload />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }

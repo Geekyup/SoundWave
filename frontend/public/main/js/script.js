@@ -634,10 +634,28 @@
         });
     }
 
+    function scheduleInitialInit() {
+        const runInit = () => {
+            if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(() => initAll(), {timeout: 300});
+            } else {
+                window.setTimeout(() => initAll(), 0);
+            }
+        };
+
+        if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(runInit);
+            });
+        } else {
+            runInit();
+        }
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAll);
+        document.addEventListener('DOMContentLoaded', scheduleInitialInit);
     } else {
-        initAll();
+        scheduleInitialInit();
     }
 
     window.__swInit = initAll;
