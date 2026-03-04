@@ -6,7 +6,23 @@ from rest_framework import serializers
 from apps.accounts.models import Profile
 from apps.drumkits.models import DrumKit, DrumKitFile
 from apps.uploader.models import Loop, Sample
-from apps.uploader.waveform_cache import get_cached_waveform
+
+
+def build_waveform_payload(instance):
+    peaks = getattr(instance, 'waveform_peaks', None)
+    if not isinstance(peaks, list) or not peaks:
+        return None
+
+    source_file = (getattr(instance, 'waveform_source_file', None) or '').strip()
+    audio_field = getattr(instance, 'audio_file', None)
+    audio_name = (getattr(audio_field, 'name', None) or '').strip()
+    if source_file and audio_name and source_file != audio_name:
+        return None
+
+    return {
+        'peaks': peaks,
+        'duration': getattr(instance, 'waveform_duration', None),
+    }
 
 
 class LoopSerializer(serializers.ModelSerializer):
@@ -42,7 +58,7 @@ class LoopSerializer(serializers.ModelSerializer):
     def get_waveform(self, obj):
         if not self.context.get('include_waveform'):
             return None
-        return get_cached_waveform('loop', obj.id, obj.audio_file.name)
+        return build_waveform_payload(obj)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -85,7 +101,7 @@ class SampleSerializer(serializers.ModelSerializer):
     def get_waveform(self, obj):
         if not self.context.get('include_waveform'):
             return None
-        return get_cached_waveform('sample', obj.id, obj.audio_file.name)
+        return build_waveform_payload(obj)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -213,7 +229,7 @@ class DrumKitFileSerializer(serializers.ModelSerializer):
     def get_waveform(self, obj):
         if not self.context.get('include_waveform'):
             return None
-        return get_cached_waveform('drum-kit-file', obj.id, obj.audio_file.name)
+        return build_waveform_payload(obj)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

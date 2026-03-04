@@ -47,6 +47,7 @@
 
 .sample-card:not(.sample-square) {
     padding-bottom: 1.1rem;
+    min-height: 248px;
 }
 
 .card-header {
@@ -138,7 +139,8 @@
 
 .card-waveform {
     flex: 1;
-    min-height: 32px;
+    min-height: 40px;
+    height: 40px;
     margin: 0.15rem 0;
 }
 
@@ -447,5 +449,112 @@
     100% {
         transform: scale(1);
         opacity: 1;
+    }
+}
+
+.sample-card-skeleton {
+    pointer-events: none;
+}
+
+.sample-card-skeleton .card-header,
+.sample-card-skeleton .card-controls {
+    align-items: center;
+}
+
+.skeleton-line,
+.skeleton-waveform,
+.skeleton-pill,
+.skeleton-btn,
+.skeleton-tag {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.skeleton-line::after,
+.skeleton-waveform::after,
+.skeleton-pill::after,
+.skeleton-btn::after,
+.skeleton-tag::after,
+.pagination-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.skeleton-line {
+    height: 12px;
+    border-radius: 999px;
+}
+
+.skeleton-line-title {
+    width: 220px;
+    max-width: 60%;
+    margin-bottom: 0.6rem;
+}
+
+.skeleton-line-author {
+    width: 130px;
+    max-width: 45%;
+}
+
+.skeleton-line-date {
+    width: 110px;
+}
+
+.skeleton-waveform {
+    border-radius: 8px;
+    height: 40px;
+    min-height: 40px;
+}
+
+.skeleton-pill {
+    width: 88px;
+    height: 30px;
+    border-radius: 999px;
+}
+
+.skeleton-btn {
+    height: 40px;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-btn-download {
+    width: 108px;
+}
+
+.skeleton-btn-play {
+    width: 112px;
+}
+
+.skeleton-tag {
+    width: 72px;
+    height: 28px;
+    border-radius: 999px;
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.pagination-slot {
+    min-height: 84px;
+}
+
+.pagination-skeleton {
+    width: 260px;
+    height: 52px;
+    margin: 28px auto 0;
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes skeletonShimmer {
+    100% {
+        transform: translateX(100%);
     }
 }

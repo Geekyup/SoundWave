@@ -3,6 +3,7 @@
     const playersMeta = {}; // {cardId: {player, btn, waveformEl, isLoop, userPaused}}
     let currentPlayer = null;
     const waveformCacheSent = new Set();
+    let initQueueToken = 0;
 
     const ICONS = {
         play: '<svg class="play-icon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>',
@@ -374,6 +375,47 @@
         });
     }
 
+    function schedulePlayersInit(cards) {
+        const queueToken = ++initQueueToken;
+        const immediateCount = 4;
+        const immediateCards = cards.slice(0, immediateCount);
+        const deferredCards = cards.slice(immediateCount);
+
+        immediateCards.forEach(initPlayer);
+
+        if (!deferredCards.length) return;
+        let index = 0;
+
+        const runBatch = deadline => {
+            if (queueToken !== initQueueToken) return;
+
+            let budget = 2;
+            if (deadline && typeof deadline.timeRemaining === 'function') {
+                budget = Math.max(1, Math.floor(deadline.timeRemaining() / 4));
+            }
+
+            let processed = 0;
+            while (index < deferredCards.length && processed < budget) {
+                initPlayer(deferredCards[index]);
+                index += 1;
+                processed += 1;
+            }
+
+            if (queueToken !== initQueueToken || index >= deferredCards.length) return;
+            if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(runBatch, {timeout: 280});
+            } else {
+                window.setTimeout(runBatch, 42);
+            }
+        };
+
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(runBatch, {timeout: 280});
+        } else {
+            window.setTimeout(runBatch, 42);
+        }
+    }
+
     function initPlayer(card) {
         const cardId = card.dataset.cardId;
         const url = card.dataset.url;
@@ -538,7 +580,8 @@
 
     function initAll() {
         cleanupStalePlayers();
-        document.querySelectorAll('[data-card-id]').forEach(initPlayer);
+        const cards = Array.from(document.querySelectorAll('[data-card-id]'));
+        schedulePlayersInit(cards);
 
         if (listenersBound) return;
         listenersBound = true;

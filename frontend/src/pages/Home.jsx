@@ -43,6 +43,16 @@ function extractKeywordTags(value, max = 5) {
   return result;
 }
 
+const LOOP_SKELETON_ITEMS = Array.from({ length: 6 }, (_, index) => index);
+
+const LOOP_DATE_WINDOW_CHOICES = [
+  { value: '', label: 'Any time' },
+  { value: '24h', label: 'Last 24 hours' },
+  { value: '48h', label: 'Last 48 hours' },
+  { value: 'week', label: 'Last week' },
+  { value: 'month', label: 'Last month' },
+];
+
 export default function Home({ tab }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchText, setSearchText] = useState('');
@@ -53,6 +63,7 @@ export default function Home({ tab }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [loopForm, setLoopForm] = useState({
     genre: '',
+    date_window: '',
     bpm_min: '',
     bpm_max: '',
     author: '',
@@ -72,6 +83,7 @@ export default function Home({ tab }) {
   useEffect(() => {
     setLoopForm({
       genre: searchParams.get('genre') || '',
+      date_window: searchParams.get('date_window') || '',
       bpm_min: searchParams.get('bpm_min') || '',
       bpm_max: searchParams.get('bpm_max') || '',
       author: searchParams.get('author') || '',
@@ -87,6 +99,7 @@ export default function Home({ tab }) {
 
   const loopFilters = useMemo(() => ({
     genre: searchParams.get('genre') || '',
+    date_window: searchParams.get('date_window') || '',
     bpm_min: searchParams.get('bpm_min') || '',
     bpm_max: searchParams.get('bpm_max') || '',
     author: searchParams.get('author') || '',
@@ -112,6 +125,7 @@ export default function Home({ tab }) {
       } else {
         const params = { page: currentPage };
         if (loopFilters.genre) params.genre = loopFilters.genre;
+        if (loopFilters.date_window) params.date_window = loopFilters.date_window;
         if (loopFilters.bpm_min) params.bpm_min = loopFilters.bpm_min;
         if (loopFilters.bpm_max) params.bpm_max = loopFilters.bpm_max;
         if (loopFilters.author) params.author = loopFilters.author;
@@ -190,7 +204,7 @@ export default function Home({ tab }) {
   const applyLoopFilters = e => {
     e.preventDefault();
     const next = new URLSearchParams(searchParams);
-    ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort'].forEach(key => {
+    ['genre', 'date_window', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort'].forEach(key => {
       if (loopForm[key]) {
         next.set(key, loopForm[key]);
       } else {
@@ -204,7 +218,7 @@ export default function Home({ tab }) {
 
   const resetLoopFilters = () => {
     const next = new URLSearchParams(searchParams);
-    ['genre', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort'].forEach(key => {
+    ['genre', 'date_window', 'bpm_min', 'bpm_max', 'author', 'keywords', 'sort'].forEach(key => {
       next.delete(key);
     });
     next.set('page', '1');
@@ -400,6 +414,17 @@ export default function Home({ tab }) {
                         direction="down"
                       />
                     </div>
+                    <div className="filter-group">
+                      <label htmlFor="date-window-filter">Date</label>
+                      <Select
+                        ariaLabel="Date window"
+                        value={loopForm.date_window}
+                        onChange={value => handleLoopFormChange('date_window', value)}
+                        placeholder="Any time"
+                        options={LOOP_DATE_WINDOW_CHOICES}
+                        direction="down"
+                      />
+                    </div>
                     <div className="filter-group filter-group-bpm">
                       <label htmlFor="bpm-min-filter">BPM</label>
                       <div className="bpm-range-inputs">
@@ -470,9 +495,32 @@ export default function Home({ tab }) {
 
               <div className="sample-grid">
                 {loading ? (
-                  <div className="empty-state">
-                    <p>Loading loops...</p>
-                  </div>
+                  LOOP_SKELETON_ITEMS.map(item => (
+                    <div className="sample-card sample-card-skeleton" key={`loop-skeleton-${item}`} aria-hidden="true">
+                      <div className="card-header">
+                        <div className="card-info">
+                          <div className="skeleton-line skeleton-line-title"></div>
+                          <div className="skeleton-line skeleton-line-author"></div>
+                        </div>
+                        <div className="card-meta-top">
+                          <div className="skeleton-line skeleton-line-date"></div>
+                        </div>
+                      </div>
+                      <div className="card-waveform skeleton-waveform"></div>
+                      <div className="card-controls">
+                        <div className="skeleton-pill"></div>
+                        <div className="controls-actions">
+                          <div className="skeleton-btn skeleton-btn-download"></div>
+                          <div className="skeleton-btn skeleton-btn-play"></div>
+                        </div>
+                      </div>
+                      <div className="card-tags">
+                        <span className="tag skeleton-tag"></span>
+                        <span className="tag skeleton-tag"></span>
+                        <span className="tag skeleton-tag"></span>
+                      </div>
+                    </div>
+                  ))
                 ) : loops.length ? (
                   loops.map(loop => {
                     const loopAuthor = loop.author?.trim() || 'Unknown';
@@ -576,7 +624,9 @@ export default function Home({ tab }) {
                 )}
               </div>
 
-              <Pagination count={count} />
+              <div className="pagination-slot">
+                {loading ? <div className="pagination pagination-skeleton" aria-hidden="true"></div> : <Pagination count={count} />}
+              </div>
             </section>
           )}
         </main>
