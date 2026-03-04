@@ -21,6 +21,18 @@ export default function Pagination({ count }) {
 
   const pageRange = buildPageRange(currentPage, totalPages);
 
+  const scrollToCatalogTop = () => {
+    if (typeof window === 'undefined') return;
+    const catalog = document.getElementById('catalog');
+    if (catalog) {
+      const offset = 92;
+      const top = Math.max(0, catalog.getBoundingClientRect().top + window.scrollY - offset);
+      window.scrollTo({ top, behavior: 'smooth' });
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const goToPage = page => {
     if (typeof window !== 'undefined' && typeof window.__swStopAll === 'function') {
       window.__swStopAll({ destroy: true });
@@ -28,6 +40,7 @@ export default function Pagination({ count }) {
     const next = new URLSearchParams(searchParams);
     next.set('page', String(page));
     setSearchParams(next, { replace: true });
+    scrollToCatalogTop();
   };
 
   return (

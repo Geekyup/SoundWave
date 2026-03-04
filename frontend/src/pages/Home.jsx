@@ -295,7 +295,7 @@ export default function Home({ tab }) {
                         className="sample-card sample-square sample-item"
                         id={`card-${sample.id}`}
                         data-card-id={sample.id}
-                        data-url={sample.audio_file}
+                        data-url={sample.play_url || sample.audio_file}
                         data-kind="samples"
                         data-waveform-peaks={sample.waveform?.peaks?.length ? JSON.stringify(sample.waveform.peaks) : ''}
                         data-waveform-duration={sample.waveform?.duration || ''}
@@ -335,7 +335,7 @@ export default function Home({ tab }) {
                           <button
                             className="play-btn-main sample-play-btn"
                             data-card-id={sample.id}
-                            data-url={sample.audio_file}
+                            data-url={sample.play_url || sample.audio_file}
                             title="Play"
                             type="button"
                           >
@@ -532,7 +532,7 @@ export default function Home({ tab }) {
                         className="sample-card"
                         id={`card-${loop.id}`}
                         data-card-id={loop.id}
-                        data-url={loop.audio_file}
+                        data-url={loop.play_url || loop.audio_file}
                         data-kind="loops"
                         data-waveform-peaks={loop.waveform?.peaks?.length ? JSON.stringify(loop.waveform.peaks) : ''}
                         data-waveform-duration={loop.waveform?.duration || ''}
@@ -597,7 +597,7 @@ export default function Home({ tab }) {
                                 Login
                               </a>
                             )}
-                            <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.audio_file} type="button">
+                            <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.play_url || loop.audio_file} type="button">
                               Play
                             </button>
                           </div>

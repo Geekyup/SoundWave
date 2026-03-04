@@ -29,6 +29,7 @@ class LoopSerializer(serializers.ModelSerializer):
     genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     file_size = serializers.CharField(source='get_file_size', read_only=True)
     download_url = serializers.SerializerMethodField()
+    play_url = serializers.SerializerMethodField()
     waveform = serializers.SerializerMethodField()
 
     class Meta:
@@ -41,6 +42,7 @@ class LoopSerializer(serializers.ModelSerializer):
             'genre_display',
             'bpm',
             'audio_file',
+            'play_url',
             'uploaded_at',
             'downloads',
             'keywords',
@@ -54,6 +56,14 @@ class LoopSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('loops-download', args=[obj.id])
         return request.build_absolute_uri(path) if request else path
+
+    def get_play_url(self, obj):
+        file_field = obj.preview_file if obj.preview_file else obj.audio_file
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        url = file_field.url
+        return request.build_absolute_uri(url) if request else url
 
     def get_waveform(self, obj):
         if not self.context.get('include_waveform'):
@@ -72,6 +82,7 @@ class SampleSerializer(serializers.ModelSerializer):
     sample_type_display = serializers.CharField(source='get_sample_type_display', read_only=True)
     file_size = serializers.CharField(source='get_file_size', read_only=True)
     download_url = serializers.SerializerMethodField()
+    play_url = serializers.SerializerMethodField()
     waveform = serializers.SerializerMethodField()
 
     class Meta:
@@ -85,6 +96,7 @@ class SampleSerializer(serializers.ModelSerializer):
             'genre',
             'genre_display',
             'audio_file',
+            'play_url',
             'uploaded_at',
             'downloads',
             'file_size',
@@ -97,6 +109,14 @@ class SampleSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('samples-download', args=[obj.id])
         return request.build_absolute_uri(path) if request else path
+
+    def get_play_url(self, obj):
+        file_field = obj.preview_file if obj.preview_file else obj.audio_file
+        if not file_field:
+            return None
+        request = self.context.get('request')
+        url = file_field.url
+        return request.build_absolute_uri(url) if request else url
 
     def get_waveform(self, obj):
         if not self.context.get('include_waveform'):
