@@ -2,6 +2,7 @@
     const players = {}; // {cardId: WaveSurferInstance}
     const playersMeta = {}; // {cardId: {player, btn, waveformEl, isLoop, userPaused}}
     let currentPlayer = null;
+    let currentPlayerCardId = null;
     const waveformCacheSent = new Set();
     let initQueueToken = 0;
 
@@ -248,17 +249,21 @@
     }
 
     function pauseOthers(exceptPlayer) {
-        Object.values(playersMeta).forEach(meta => {
-            const {player, btn} = meta;
-            if (!player || player === exceptPlayer) return;
-            meta.pendingPlay = false;
-            if (player.isPlaying()) {
-                meta.userPaused = true;
-                player.pause();
-                setButtonIcon(btn, false);
-                if (currentPlayer === player) currentPlayer = null;
-            }
-        });
+        if (!currentPlayer || currentPlayer === exceptPlayer) return;
+
+        const activeMeta = currentPlayerCardId
+            ? playersMeta[currentPlayerCardId]
+            : Object.values(playersMeta).find(meta => meta.player === currentPlayer);
+
+        if (!activeMeta?.player || activeMeta.player === exceptPlayer) return;
+        activeMeta.pendingPlay = false;
+        if (activeMeta.player.isPlaying()) {
+            activeMeta.userPaused = true;
+            activeMeta.player.pause();
+        }
+        setButtonIcon(activeMeta.btn, false);
+        currentPlayer = null;
+        currentPlayerCardId = null;
     }
 
     function stopAllPlayback(options = {}) {
@@ -276,6 +281,7 @@
             }
         });
         currentPlayer = null;
+        currentPlayerCardId = null;
     }
 
     function destroyPlayer(cardId) {
@@ -284,6 +290,7 @@
 
         if (currentPlayer === meta.player) {
             currentPlayer = null;
+            currentPlayerCardId = null;
         }
 
         if (meta.waveformEl && meta.seekHandler) {
@@ -310,6 +317,7 @@
         meta.userPaused = false;
         setButtonIcon(btn, true);
         currentPlayer = player;
+        currentPlayerCardId = player.cardId || null;
 
         let playPromise;
         const failPlay = () => {
@@ -320,7 +328,10 @@
             meta.pendingPlay = false;
             meta.userPaused = true;
             setButtonIcon(btn, false);
-            if (currentPlayer === player) currentPlayer = null;
+            if (currentPlayer === player) {
+                currentPlayer = null;
+                currentPlayerCardId = null;
+            }
         };
 
         const startPlay = () => {
@@ -518,11 +529,15 @@
             }
             pauseOthers(ws);
             currentPlayer = ws;
+            currentPlayerCardId = cardId;
             setButtonIcon(btn, true);
         });
         ws.on('pause', () => {
             setButtonIcon(btn, false);
-            if (currentPlayer === ws) currentPlayer = null;
+            if (currentPlayer === ws) {
+                currentPlayer = null;
+                currentPlayerCardId = null;
+            }
         });
 
         if (!hasCachedWaveform) {
@@ -546,7 +561,10 @@
             meta.pendingPlay = false;
             player.pause();
             setButtonIcon(btn, false);
-            if (currentPlayer === player) currentPlayer = null;
+            if (currentPlayer === player) {
+                currentPlayer = null;
+                currentPlayerCardId = null;
+            }
         } else {
             requestPlay(meta, {allowRetry: true, fromUserGesture: true});
         }
@@ -577,6 +595,24 @@
     const downloadedFiles = new Set();
 
     let listenersBound = false;
+
+    function scheduleCardWarmup(card) {
+        if (!card) return;
+        const cardId = card.dataset.cardId;
+        if (!cardId || playersMeta[cardId]) return;
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(() => initPlayer(card), {timeout: 120});
+        } else {
+            window.setTimeout(() => initPlayer(card), 0);
+        }
+    }
+
+    function warmupFromInteractiveTarget(target) {
+        const playBtn = target?.closest?.('.play-btn-main, .play-btn-rect');
+        if (!playBtn) return;
+        const card = playBtn.closest('[data-card-id]');
+        scheduleCardWarmup(card);
+    }
 
     function initAll() {
         cleanupStalePlayers();
@@ -632,15 +668,21 @@
                 requestPlay(meta, {allowRetry: true, fromUserGesture: true});
             }
         });
+
+        document.addEventListener('pointerover', e => {
+            warmupFromInteractiveTarget(e.target);
+        });
+        document.addEventListener('focusin', e => {
+            warmupFromInteractiveTarget(e.target);
+        });
+        document.addEventListener('touchstart', e => {
+            warmupFromInteractiveTarget(e.target);
+        }, {passive: true});
     }
 
     function scheduleInitialInit() {
         const runInit = () => {
-            if (typeof window.requestIdleCallback === 'function') {
-                window.requestIdleCallback(() => initAll(), {timeout: 300});
-            } else {
-                window.setTimeout(() => initAll(), 0);
-            }
+            initAll();
         };
 
         if (typeof window.requestAnimationFrame === 'function') {
