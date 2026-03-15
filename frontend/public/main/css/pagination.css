@@ -74,6 +74,18 @@
     background: rgba(0, 0, 0, 0.03);
 }
 
+.pagination-ellipsis {
+    min-width: var(--pg-size);
+    height: var(--pg-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--pg-font-size);
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+    user-select: none;
+}
+
 .pagination-link.page:hover:not(.current),
 .pagination-link.page-prev:hover,
 .pagination-link.page-next:hover,
@@ -84,6 +96,7 @@
 }
 
 .pagination-link[aria-disabled="true"],
+.pagination-link:disabled,
 .pagination-link.disabled {
     opacity: 0.48;
     pointer-events: none;

@@ -196,6 +196,7 @@
     flex-direction: column;
     gap: 1.15rem;
     margin-top: 1.75rem;
+    position: relative;
 }
 
 .samples-grid {
@@ -203,6 +204,7 @@
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: var(--space-xl);
     margin-top: var(--space-xl);
+    position: relative;
 }
 
 .sample-square {
@@ -557,4 +559,23 @@
     100% {
         transform: translateX(100%);
     }
+}
+
+.list-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 15, 15, 0.55);
+    border-radius: var(--radius-md);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.list-loading-text {
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
 }

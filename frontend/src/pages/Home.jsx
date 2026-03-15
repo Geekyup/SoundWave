@@ -281,7 +281,12 @@ export default function Home({ tab }) {
               </div>
 
               <div className="sample-grid samples-grid" id="samples-grid">
-                {loading ? (
+                {loading && samples.length ? (
+                  <div className="list-loading-overlay" aria-hidden="true">
+                    <span className="list-loading-text">Loading samples...</span>
+                  </div>
+                ) : null}
+                {loading && !samples.length ? (
                   <div className="empty-state">
                     <p>Loading samples...</p>
                   </div>
@@ -376,7 +381,7 @@ export default function Home({ tab }) {
                 )}
               </div>
 
-              <Pagination count={count} />
+              <Pagination count={count} isLoading={loading} />
             </>
           ) : (
             <section className="section">
@@ -494,7 +499,12 @@ export default function Home({ tab }) {
               </div>
 
               <div className="sample-grid">
-                {loading ? (
+                {loading && loops.length ? (
+                  <div className="list-loading-overlay" aria-hidden="true">
+                    <span className="list-loading-text">Loading loops...</span>
+                  </div>
+                ) : null}
+                {loading && !loops.length ? (
                   LOOP_SKELETON_ITEMS.map(item => (
                     <div className="sample-card sample-card-skeleton" key={`loop-skeleton-${item}`} aria-hidden="true">
                       <div className="card-header">
@@ -625,7 +635,7 @@ export default function Home({ tab }) {
               </div>
 
               <div className="pagination-slot">
-                {loading ? <div className="pagination pagination-skeleton" aria-hidden="true"></div> : <Pagination count={count} />}
+                <Pagination count={count} isLoading={loading} />
               </div>
             </section>
           )}

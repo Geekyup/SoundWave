@@ -8,15 +8,20 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async e => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
+    setIsSubmitting(true);
     try {
       await login(username, password);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Login failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -47,6 +52,7 @@ export default function Login() {
                 name="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="form-group">
@@ -57,12 +63,24 @@ export default function Login() {
                 name="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">Login</button>
-              <a href="/register" className="btn btn-secondary">Register</a>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <span className="btn-spinner" aria-hidden="true"></span>
+                    Logging in...
+                  </>
+                ) : (
+                  'Login'
+                )}
+              </button>
+              <a href="/register" className="btn btn-secondary" aria-disabled={isSubmitting}>
+                Register
+              </a>
             </div>
           </form>
         </div>

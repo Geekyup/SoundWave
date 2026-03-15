@@ -130,6 +130,13 @@ input:focus{
     color:#fff;
     width:100%;
 }
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
 .btn-primary:hover{
     background:#5a6fe7;
     transform:translateY(-2px);
@@ -144,6 +151,27 @@ input:focus{
     border:1px solid var(--color-border);
     color:var(--color-text-primary);
     width:100%;
+}
+.btn-secondary[aria-disabled="true"] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    display: inline-block;
+    margin-right: 0.5rem;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 .btn-secondary:hover{
     background:var(--color-hover);
