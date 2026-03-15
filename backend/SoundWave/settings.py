@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.drumkits',
     'apps.uploader',
-    'apps.main',
     'apps.api',
 ]
 
@@ -123,7 +122,6 @@ STATIC_URL = '/static/'
 
 APP_STATICFILES_DIRS = [
     BASE_DIR / "apps" / "accounts" / "static",
-    BASE_DIR / "apps" / "main" / "static",
     BASE_DIR / "apps" / "uploader" / "static",
 ]
 STATICFILES_DIRS = [path for path in APP_STATICFILES_DIRS if path.exists()]

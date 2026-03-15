@@ -1,5 +1,5 @@
 import os
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.http import FileResponse, Http404
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Profile
-from apps.drumkits.models import DrumKit
+from apps.drumkits.models import DrumKit, DrumKitFile
 from apps.uploader.models import Loop, Sample
 from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_waveform
 from apps.uploader.bpm_extraction import strip_bpm_from_name
@@ -52,6 +52,12 @@ class LoopViewSet(viewsets.ModelViewSet):
     ordering_fields = ['downloads', 'uploaded_at', 'bpm']
     ordering = ['-uploaded_at']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.query_params.get('include_waveform') != '1':
+            qs = qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
+        return qs
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
@@ -80,6 +86,12 @@ class SampleViewSet(viewsets.ModelViewSet):
     ordering_fields = ['downloads', 'uploaded_at']
     ordering = ['-uploaded_at']
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.query_params.get('include_waveform') != '1':
+            qs = qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
+        return qs
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
@@ -105,8 +117,12 @@ class DrumKitViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset().annotate(files_count=Count('files'))
+        include_waveform = self.request.query_params.get('include_waveform') == '1'
         if getattr(self, 'action', None) == 'retrieve':
-            qs = qs.prefetch_related('files')
+            files_qs = DrumKitFile.objects.all()
+            if not include_waveform:
+                files_qs = files_qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
+            qs = qs.prefetch_related(Prefetch('files', queryset=files_qs))
         author_filter = (self.request.query_params.get('author') or '').strip()
         if author_filter:
             qs = qs.filter(author__iexact=author_filter)
