@@ -27,7 +27,7 @@ class Follow(models.Model):
                 name='social_unique_follow',
             ),
             models.CheckConstraint(
-                check=~Q(follower=F('author')),
+                ~Q(follower=F('author')),
                 name='social_prevent_self_follow',
             ),
         ]
