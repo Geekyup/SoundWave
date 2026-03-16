@@ -5,7 +5,7 @@ FROM node:20-alpine AS frontend-build
 WORKDIR /app
 
 COPY frontend/package*.json /app/
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN npm ci
 
 COPY frontend /app
 
@@ -31,8 +31,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt /app/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --upgrade pip && \
+RUN pip install --upgrade pip && \
     pip install -r /app/requirements.txt
 
 
