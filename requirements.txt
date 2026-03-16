@@ -10,3 +10,7 @@ django-filter
 django-cors-headers
 djangorestframework-simplejwt
 Pillow
+django-storages
+boto3
+cloudinary
+django-cloudinary-storage
