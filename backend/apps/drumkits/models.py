@@ -5,6 +5,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from apps.uploader.models import GENRE_CHOICES
+from SoundWave.storage_backends import get_image_storage
 
 
 def drumkit_cover_upload_to(instance, filename):
@@ -31,7 +32,7 @@ class DrumKit(models.Model):
     description = models.TextField(blank=True)
     author = models.CharField(max_length=100, blank=True, default='')
     genre = models.CharField(max_length=50, choices=GENRE_CHOICES, default='other')
-    cover = models.ImageField(upload_to=drumkit_cover_upload_to, blank=True, null=True)
+    cover = models.ImageField(upload_to=drumkit_cover_upload_to, blank=True, null=True, storage=get_image_storage())
     archive_file = models.FileField(upload_to=drumkit_archive_upload_to, blank=True, null=True)
     is_public = models.BooleanField(default=True)
     downloads = models.IntegerField(default=0)

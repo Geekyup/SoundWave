@@ -3,10 +3,11 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from SoundWave.storage_backends import get_image_storage
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/%Y/%m/%d/', blank=True)
+    avatar = models.ImageField(upload_to='avatars/%Y/%m/%d/', blank=True, storage=get_image_storage())
     bio = models.TextField(max_length=500, blank=True)
 
     def __str__(self):

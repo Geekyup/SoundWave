@@ -166,9 +166,8 @@ if USE_CLOUDINARY:
         'API_KEY': os.getenv('CLOUDINARY_API_KEY', ''),
         'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', ''),
         'SECURE': True,
-        'RESOURCE_TYPE': os.getenv('CLOUDINARY_RESOURCE_TYPE', 'auto'),
     }
-    STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"}
+    STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage"}
     MEDIA_URL = '/media/'
 elif USE_R2:
     R2_ACCOUNT_ID = os.getenv('R2_ACCOUNT_ID', '')
