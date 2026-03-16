@@ -392,6 +392,62 @@
     transform: none;
 }
 
+.sample-controls .sample-delete-btn {
+    width: 100%;
+    min-height: 56px;
+    border: none;
+    border-left: 1px solid var(--color-border);
+    border-radius: 0;
+    background: transparent;
+    color: #f87171;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-base), color var(--transition-base);
+}
+
+.sample-controls .sample-delete-btn:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.12);
+}
+
+.sample-controls .sample-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.delete-btn-rect {
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    color: #fca5a5;
+    background: rgba(20, 20, 20, 0.7);
+    font-weight: 600;
+}
+
+.manage-delete-btn {
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+}
+
+.delete-btn-rect:hover:not(:disabled),
+.delete-btn-rect:focus-visible:not(:disabled) {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.6);
+}
+
+.delete-btn-rect:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
 /* Загрузки для SAMPLES (вверху карточки) */
 .sample-downloads-top {
     position: absolute;

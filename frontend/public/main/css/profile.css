@@ -602,6 +602,22 @@
     cursor: not-allowed;
 }
 
+.profile-manage-body {
+    margin-top: 0.6rem;
+}
+
+.profile-manage-panel .sample-grid,
+.profile-manage-panel .samples-grid,
+.profile-manage-panel .drumkits-grid {
+    margin-top: 0.75rem;
+}
+
+.profile-manage-panel .profile-manage-card {
+    cursor: default;
+}
+
+ 
+
 @media (max-width: 1024px) {
     .profile-summary {
         flex-wrap: wrap;

@@ -26,6 +26,43 @@
     transition: border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
 }
 
+.drumkit-card-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+}
+
+.profile-drumkit-card {
+    position: relative;
+}
+
+.drumkit-delete-btn {
+    position: absolute;
+    bottom: 0.85rem;
+    right: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    background: rgba(20, 20, 20, 0.7);
+    color: #fca5a5;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
+}
+
+.drumkit-delete-btn:hover:not(:disabled),
+.drumkit-delete-btn:focus-visible:not(:disabled) {
+    border-color: rgba(248, 113, 113, 0.6);
+    background: rgba(248, 113, 113, 0.12);
+}
+
+.drumkit-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .drumkit-card:hover,
 .drumkit-card:focus-visible {
     border-color: rgba(107, 127, 247, 0.42);

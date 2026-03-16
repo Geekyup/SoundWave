@@ -5,6 +5,7 @@ from rest_framework import serializers
 
 from apps.accounts.models import Profile
 from apps.drumkits.models import DrumKit, DrumKitFile
+from apps.social.models import DrumKitComment, LoopComment
 from apps.uploader.models import Loop, Sample
 
 
@@ -31,6 +32,9 @@ class LoopSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     play_url = serializers.SerializerMethodField()
     waveform = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Loop
@@ -49,6 +53,9 @@ class LoopSerializer(serializers.ModelSerializer):
             'file_size',
             'download_url',
             'waveform',
+            'likes_count',
+            'comments_count',
+            'is_liked',
         ]
         read_only_fields = ['id', 'uploaded_at', 'downloads', 'author']
 
@@ -70,6 +77,17 @@ class LoopSerializer(serializers.ModelSerializer):
             return None
         return build_waveform_payload(obj)
 
+    def get_likes_count(self, obj):
+        value = getattr(obj, 'likes_count', None)
+        return value if value is not None else 0
+
+    def get_comments_count(self, obj):
+        value = getattr(obj, 'comments_count', None)
+        return value if value is not None else 0
+
+    def get_is_liked(self, obj):
+        return bool(getattr(obj, 'is_liked', False))
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if not self.context.get('include_waveform'):
@@ -84,6 +102,8 @@ class SampleSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     play_url = serializers.SerializerMethodField()
     waveform = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -102,6 +122,8 @@ class SampleSerializer(serializers.ModelSerializer):
             'file_size',
             'download_url',
             'waveform',
+            'likes_count',
+            'is_liked',
         ]
         read_only_fields = ['id', 'uploaded_at', 'downloads', 'author']
 
@@ -122,6 +144,13 @@ class SampleSerializer(serializers.ModelSerializer):
         if not self.context.get('include_waveform'):
             return None
         return build_waveform_payload(obj)
+
+    def get_likes_count(self, obj):
+        value = getattr(obj, 'likes_count', None)
+        return value if value is not None else 0
+
+    def get_is_liked(self, obj):
+        return bool(getattr(obj, 'is_liked', False))
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -189,11 +218,32 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 
+class LoopCommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = LoopComment
+        fields = ['id', 'author', 'text', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
+class DrumKitCommentSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = DrumKitComment
+        fields = ['id', 'author', 'text', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
 class DrumKitListSerializer(serializers.ModelSerializer):
     genre_display = serializers.CharField(source='get_genre_display', read_only=True)
     cover_url = serializers.SerializerMethodField()
     files_count = serializers.IntegerField(read_only=True)
     download_url = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = DrumKit
@@ -210,6 +260,9 @@ class DrumKitListSerializer(serializers.ModelSerializer):
             'created_at',
             'files_count',
             'download_url',
+            'likes_count',
+            'comments_count',
+            'is_liked',
         ]
 
     def get_cover_url(self, obj):
@@ -222,6 +275,17 @@ class DrumKitListSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('drumkits-download', args=[obj.slug])
         return request.build_absolute_uri(path) if request else path
+
+    def get_likes_count(self, obj):
+        value = getattr(obj, 'likes_count', None)
+        return value if value is not None else 0
+
+    def get_comments_count(self, obj):
+        value = getattr(obj, 'comments_count', None)
+        return value if value is not None else 0
+
+    def get_is_liked(self, obj):
+        return bool(getattr(obj, 'is_liked', False))
 
 
 class DrumKitFileSerializer(serializers.ModelSerializer):
@@ -265,6 +329,9 @@ class DrumKitDetailSerializer(serializers.ModelSerializer):
     download_url = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     folders_tree = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
 
     class Meta:
         model = DrumKit
@@ -285,6 +352,9 @@ class DrumKitDetailSerializer(serializers.ModelSerializer):
             'download_url',
             'folders_tree',
             'files',
+            'likes_count',
+            'comments_count',
+            'is_liked',
         ]
 
     def get_cover_url(self, obj):
@@ -297,6 +367,17 @@ class DrumKitDetailSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('drumkits-download', args=[obj.slug])
         return request.build_absolute_uri(path) if request else path
+
+    def get_likes_count(self, obj):
+        value = getattr(obj, 'likes_count', None)
+        return value if value is not None else 0
+
+    def get_comments_count(self, obj):
+        value = getattr(obj, 'comments_count', None)
+        return value if value is not None else 0
+
+    def get_is_liked(self, obj):
+        return bool(getattr(obj, 'is_liked', False))
 
     def get_files(self, obj):
         folder = (self.context.get('folder_filter') or '').strip()

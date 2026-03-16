@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'apps.accounts',
     'apps.drumkits',
+    'apps.social',
     'apps.uploader',
     'apps.api',
 ]
