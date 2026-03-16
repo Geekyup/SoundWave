@@ -1,6 +1,21 @@
 # syntax=docker/dockerfile:1.7
 
-FROM python:3.13-slim AS builder
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app
+
+COPY frontend/package*.json /app/
+RUN --mount=type=cache,target=/root/.npm npm ci
+
+COPY frontend /app
+
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
+RUN npm run build
+
+
+FROM python:3.13-slim AS backend-build
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -20,6 +35,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip && \
     pip install -r /app/requirements.txt
 
+
 FROM python:3.13-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -28,15 +44,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Runtime dependency for psycopg2 and similar packages.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libpq5 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
-COPY --from=builder /opt/venv /opt/venv
+COPY --from=backend-build /opt/venv /opt/venv
 COPY backend /app/backend
+COPY --from=frontend-build /app/dist /app/backend/frontend_dist
 COPY docker/backend-entrypoint.sh /app/docker/backend-entrypoint.sh
 
 RUN chmod +x /app/docker/backend-entrypoint.sh && \

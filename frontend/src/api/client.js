@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const envBase = import.meta.env.VITE_API_URL;
+const API_BASE = envBase && envBase.trim()
+  ? envBase.replace(/\/$/, '')
+  : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000');
 
 function decodeJwtPayload(token) {
   if (!token || typeof token !== 'string') return null;

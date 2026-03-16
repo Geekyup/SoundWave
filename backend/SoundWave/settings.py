@@ -70,6 +70,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'SoundWave.urls'
 
+FRONTEND_DIST = BASE_DIR / "frontend_dist"
+SERVE_FRONTEND = os.getenv("SERVE_FRONTEND", "1") == "1"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -85,6 +88,8 @@ TEMPLATES = [
         },
     },
 ]
+if SERVE_FRONTEND and (FRONTEND_DIST / "index.html").exists():
+    TEMPLATES[0]['DIRS'].append(str(FRONTEND_DIST))
 
 WSGI_APPLICATION = 'SoundWave.wsgi.application'
 
@@ -134,8 +139,11 @@ APP_STATICFILES_DIRS = [
     BASE_DIR / "apps" / "uploader" / "static",
 ]
 STATICFILES_DIRS = [path for path in APP_STATICFILES_DIRS if path.exists()]
+if FRONTEND_DIST.exists():
+    STATICFILES_DIRS.append(FRONTEND_DIST)
 
 STATIC_ROOT = BASE_DIR / "staticfiles"  
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files configuration
 MEDIA_URL = '/media/'
@@ -182,6 +190,9 @@ if DEBUG and not CORS_ALLOWED_ORIGINS:
     ]
 if DEBUG and not CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS = list(CORS_ALLOWED_ORIGINS)
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 LOGGING = {
     "version": 1,

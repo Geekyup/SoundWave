@@ -60,7 +60,6 @@ backend/staticfiles/
 README*
 *.md
 docs/
-Dockerfile*
 docker-compose*
 
 # Temporary and local files
