@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { login } from '../api/auth.js';
 
@@ -29,7 +29,7 @@ export default function Login() {
     <div>
       <header className="header">
         <div className="logo">
-          <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>SoundWave</a>
+          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>SoundWave</Link>
         </div>
       </header>
 
@@ -78,9 +78,9 @@ export default function Login() {
                   'Login'
                 )}
               </button>
-              <a href="/register" className="btn btn-secondary" aria-disabled={isSubmitting}>
+              <Link to="/register" className="btn btn-secondary" aria-disabled={isSubmitting}>
                 Register
-              </a>
+              </Link>
             </div>
           </form>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { apiFetch, getAccessToken } from '../api/client.js';
 import { GENRE_CHOICES, SAMPLE_TYPE_CHOICES } from '../constants.js';
@@ -45,7 +45,7 @@ export default function Upload() {
               <h1>Upload content</h1>
               <p>Please log in to upload.</p>
             </div>
-            <a href="/login" className="btn btn-primary">Login</a>
+            <Link to="/login" className="btn btn-primary">Login</Link>
           </section>
         </div>
       </main>
@@ -278,9 +278,9 @@ export default function Upload() {
               <button type="submit" className="upload-action-btn upload-action-btn-primary">
                 <span className="btn-text">Upload</span>
               </button>
-              <a href="/" className="upload-action-btn upload-action-btn-secondary">
+              <Link to="/" className="upload-action-btn upload-action-btn-secondary">
                 <span className="btn-text">Cancel</span>
-              </a>
+              </Link>
             </div>
           </form>
         </section>

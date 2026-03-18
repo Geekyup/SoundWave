@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { register } from '../api/auth.js';
 
@@ -25,7 +25,7 @@ export default function Register() {
     <div>
       <header className="header">
         <div className="logo">
-          <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>SoundWave</a>
+          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>SoundWave</Link>
         </div>
       </header>
 
@@ -73,7 +73,7 @@ export default function Register() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary">Register</button>
-              <a href="/login" className="btn btn-secondary">Already have an account</a>
+              <Link to="/login" className="btn btn-secondary">Already have an account</Link>
             </div>
           </form>
         </div>

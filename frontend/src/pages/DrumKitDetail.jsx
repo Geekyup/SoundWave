@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { getDrumKit } from '../api/drumKits.js';
 import { getAccessToken } from '../api/client.js';
@@ -150,7 +150,7 @@ export default function DrumKitDetail() {
                     )}
                   </div>
                   <div className="drumkit-detail-info">
-                    <a href="/drum-kits" className="drumkit-back-link">← Back to kits</a>
+                    <Link to="/drum-kits" className="drumkit-back-link">← Back to kits</Link>
                     <div className="drumkit-detail-title-row">
                       <h1>{kit.title}</h1>
                     </div>
@@ -163,7 +163,7 @@ export default function DrumKitDetail() {
                         {isAuthenticated ? (
                           <a href={kit.download_url} className="btn btn-primary drumkit-download-btn">Download Kit</a>
                         ) : (
-                          <a href="/login" className="btn btn-secondary drumkit-download-btn">Login</a>
+                          <Link to="/login" className="btn btn-secondary drumkit-download-btn">Login</Link>
                         )}
                       </div>
                     ) : null}

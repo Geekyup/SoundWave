@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { listLoops } from '../api/loops.js';
 import { listSamples } from '../api/samples.js';
@@ -323,9 +323,9 @@ export default function Home({ tab }) {
                           <p className="sample-author">
                             <span className="sample-author-prefix">by </span>
                             {sampleAuthorHref ? (
-                              <a href={sampleAuthorHref} className="sample-author-link" title={`View ${sampleAuthor} profile`}>
+                              <Link to={sampleAuthorHref} className="sample-author-link" title={`View ${sampleAuthor} profile`}>
                                 {sampleAuthor}
-                              </a>
+                              </Link>
                             ) : (
                               <span className="sample-author-muted">{sampleAuthor}</span>
                             )}
@@ -362,13 +362,13 @@ export default function Home({ tab }) {
                               </svg>
                             </a>
                           ) : (
-                            <a
-                              href="/login"
+                            <Link
+                              to="/login"
                               className="download-btn-bottom download-btn-bottom-login auth-required-download"
                               title="Login to download"
                             >
                               Login
-                            </a>
+                            </Link>
                           )}
                         </div>
                       </div>
@@ -557,7 +557,7 @@ export default function Home({ tab }) {
                                   {loopAuthor.charAt(0).toUpperCase()}
                                 </div>
                                 {loopAuthorHref ? (
-                                  <a href={loopAuthorHref} className="author-link">{loopAuthor}</a>
+                                  <Link to={loopAuthorHref} className="author-link">{loopAuthor}</Link>
                                 ) : (
                                   <span className="author-link">{loopAuthor}</span>
                                 )}
@@ -599,13 +599,13 @@ export default function Home({ tab }) {
                                 Download
                               </a>
                             ) : (
-                              <a
-                                href="/login"
+                              <Link
+                                to="/login"
                                 className="download-btn-rect auth-required-download"
                                 title="Login to download"
                               >
                                 Login
-                              </a>
+                              </Link>
                             )}
                             <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.play_url || loop.audio_file} type="button">
                               Play
@@ -628,7 +628,7 @@ export default function Home({ tab }) {
                   <div className="empty-state">
                     <p>
                       No uploaded tracks.
-                      <a href="/upload">Upload the first</a>
+                      <Link to="/upload">Upload the first</Link>
                     </p>
                   </div>
                 )}

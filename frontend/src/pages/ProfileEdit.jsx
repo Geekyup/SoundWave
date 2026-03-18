@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { getMe, updateMe } from '../api/me.js';
 import { getAccessToken } from '../api/client.js';
@@ -159,7 +159,7 @@ export default function ProfileEdit() {
           </div>
 
           <div className="form-actions">
-            <a href="/profile" className="btn btn-secondary">Cancel</a>
+            <Link to="/profile" className="btn btn-secondary">Cancel</Link>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? 'Saving...' : 'Save changes'}
             </button>

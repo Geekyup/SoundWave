@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 import { getAccessToken } from '../api/client.js';
 
 export default function SiteHeader({ active = '', searchContent = null }) {
@@ -7,7 +9,7 @@ export default function SiteHeader({ active = '', searchContent = null }) {
   return (
     <header className="header">
       <div className="logo">
-        <a href="/">SoundWave</a>
+        <Link to="/">SoundWave</Link>
       </div>
 
       <div className="search-bar">
@@ -15,21 +17,21 @@ export default function SiteHeader({ active = '', searchContent = null }) {
       </div>
 
       <nav className="nav-menu">
-        <a href="/samples" className={`nav-link ${active === 'samples' ? 'active' : ''}`}>Samples</a>
-        <a href="/loops" className={`nav-link ${active === 'loops' ? 'active' : ''}`}>Loops</a>
-        <a href="/drum-kits" className={`nav-link ${active === 'drum-kits' ? 'active' : ''}`}>Drum Kits</a>
+        <Link to="/samples" className={`nav-link ${active === 'samples' ? 'active' : ''}`}>Samples</Link>
+        <Link to="/loops" className={`nav-link ${active === 'loops' ? 'active' : ''}`}>Loops</Link>
+        <Link to="/drum-kits" className={`nav-link ${active === 'drum-kits' ? 'active' : ''}`}>Drum Kits</Link>
         {isAuth ? (
-          <a href="/upload" className={`nav-link ${active === 'upload' ? 'active' : ''}`}>Upload</a>
+          <Link to="/upload" className={`nav-link ${active === 'upload' ? 'active' : ''}`}>Upload</Link>
         ) : null}
       </nav>
 
       <div className="auth-buttons">
         {isAuth ? (
-          <a href="/profile" className="btn btn-secondary">Profile</a>
+          <Link to="/profile" className="btn btn-secondary">Profile</Link>
         ) : (
           <>
-            <a href="/login" className="btn btn-secondary">Login</a>
-            <a href="/register" className="btn btn-primary">Register</a>
+            <Link to="/login" className="btn btn-secondary">Login</Link>
+            <Link to="/register" className="btn btn-primary">Register</Link>
           </>
         )}
       </div>

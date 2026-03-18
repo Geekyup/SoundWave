@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { listDrumKits } from '../api/drumKits.js';
 import Pagination from '../components/Pagination.jsx';
@@ -94,7 +94,7 @@ export default function DrumKits() {
                 <>
                   <div className="drumkits-grid">
                     {kits.map(kit => (
-                      <a href={`/drum-kits/${kit.slug}`} className="drumkit-card" key={kit.id}>
+                      <Link to={`/drum-kits/${kit.slug}`} className="drumkit-card" key={kit.id}>
                         <div className="drumkit-cover">
                           {kit.cover_url ? (
                             <img src={kit.cover_url} alt={kit.title} loading="lazy" />
@@ -114,7 +114,7 @@ export default function DrumKits() {
                             <span className="drumkit-open">{kit.genre_display || kit.genre || 'Other'}</span>
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     ))}
                   </div>
                   <Pagination count={count} />

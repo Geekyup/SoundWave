@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { logout } from '../api/auth.js';
 import { getAccessToken } from '../api/client.js';
@@ -123,6 +123,7 @@ function StatCard({ icon, label, value }) {
 
 export default function Profile() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const [manageParams, setManageParams] = useSearchParams();
   const [me, setMe] = useState(null);
   const [meLoading, setMeLoading] = useState(false);
@@ -254,8 +255,8 @@ export default function Profile() {
           <h1>Profile is available after login</h1>
           <p className="profile-auth-text">Please sign in to view and manage your profile.</p>
           <div className="profile-auth-actions">
-            <a href="/login" className="btn btn-primary">Login</a>
-            <a href="/register" className="btn btn-secondary">Register</a>
+            <Link to="/login" className="btn btn-primary">Login</Link>
+            <Link to="/register" className="btn btn-secondary">Register</Link>
           </div>
         </div>
       </main>
@@ -485,7 +486,7 @@ export default function Profile() {
       <header className="header">
         <div className="header-inner">
           <div className="logo">
-            <a href="/">SoundWave</a>
+            <Link to="/">SoundWave</Link>
           </div>
         </div>
       </header>
@@ -501,7 +502,7 @@ export default function Profile() {
           {!isPageLoading && error ? (
             <div className="profile-compact-card empty-state">
               <p>{error}</p>
-              <a href="/" className="btn btn-secondary">Back to Home</a>
+              <Link to="/" className="btn btn-secondary">Back to Home</Link>
             </div>
           ) : null}
 
@@ -536,7 +537,7 @@ export default function Profile() {
                 </div>
                 {isOwnProfile ? (
                   <div className="profile-summary-side">
-                    <a href="/profile/edit" className="profile-summary-edit-btn">Edit profile</a>
+                    <Link to="/profile/edit" className="profile-summary-edit-btn">Edit profile</Link>
                   </div>
                 ) : null}
               </section>
@@ -655,7 +656,7 @@ export default function Profile() {
                       : 'This user has no public uploads yet.'}
                   </p>
                   {isOwnProfile ? (
-                    <a href="/upload" className="btn btn-primary">Upload track</a>
+                    <Link to="/upload" className="btn btn-primary">Upload track</Link>
                   ) : null}
                 </section>
               ) : (
@@ -750,14 +751,14 @@ export default function Profile() {
               ) : null}
 
               <section className="profile-bottom-actions">
-                <a href="/" className="btn btn-secondary profile-action-btn">Home</a>
+                <Link to="/" className="btn btn-secondary profile-action-btn">Home</Link>
                 {isOwnProfile ? (
                   <button
                     type="button"
                     className="btn btn-secondary profile-action-btn"
                     onClick={() => {
                       logout();
-                      window.location.href = '/';
+                      navigate('/');
                     }}
                   >
                     Logout
