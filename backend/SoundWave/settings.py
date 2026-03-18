@@ -21,11 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load project-level .env regardless of current working directory.
 load_dotenv(BASE_DIR.parent / '.env')
 
-# Media storage toggles
+# Media storage toggle (Cloudinary or local)
 USE_CLOUDINARY = os.getenv('USE_CLOUDINARY', '0') == '1'
-USE_R2 = os.getenv('USE_R2', '0') == '1'
-if USE_CLOUDINARY:
-    USE_R2 = False
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
@@ -57,14 +54,11 @@ INSTALLED_APPS = [
 
     'apps.accounts',
     'apps.drumkits',
-    'apps.social',
     'apps.uploader',
     'apps.api',
 ]
 if USE_CLOUDINARY:
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
-elif USE_R2:
-    INSTALLED_APPS.append('storages')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -158,8 +152,9 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
 }
 
-# Media files configuration (local by default; switch to Cloudflare R2 with USE_R2=1)
+# Media files configuration (local by default; switch to Cloudinary with USE_CLOUDINARY=1)
 MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', ''),
@@ -168,37 +163,6 @@ if USE_CLOUDINARY:
         'SECURE': True,
     }
     STORAGES["default"] = {"BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage"}
-    MEDIA_URL = '/media/'
-elif USE_R2:
-    R2_ACCOUNT_ID = os.getenv('R2_ACCOUNT_ID', '')
-    R2_ACCESS_KEY_ID = os.getenv('R2_ACCESS_KEY_ID', '')
-    R2_SECRET_ACCESS_KEY = os.getenv('R2_SECRET_ACCESS_KEY', '')
-    R2_BUCKET_NAME = os.getenv('R2_BUCKET_NAME', '')
-    R2_PUBLIC_DOMAIN = os.getenv('R2_PUBLIC_DOMAIN', '')
-    R2_ENDPOINT_URL = os.getenv('R2_ENDPOINT_URL', '')
-
-    if not R2_ENDPOINT_URL and R2_ACCOUNT_ID:
-        R2_ENDPOINT_URL = f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
-
-    AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
-    AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME
-    AWS_S3_ENDPOINT_URL = R2_ENDPOINT_URL
-    AWS_S3_REGION_NAME = 'auto'
-    AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_S3_ADDRESSING_STYLE = 'virtual'
-    AWS_DEFAULT_ACL = None
-    AWS_QUERYSTRING_AUTH = os.getenv('R2_QUERYSTRING_AUTH', '0') == '1'
-    AWS_S3_CUSTOM_DOMAIN = R2_PUBLIC_DOMAIN
-
-    if AWS_S3_CUSTOM_DOMAIN:
-        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-    else:
-        MEDIA_URL = '/media/'
-
-    STORAGES["default"] = {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}
-else:
-    MEDIA_URL = '/media/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

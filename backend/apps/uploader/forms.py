@@ -2,7 +2,6 @@ from django import forms
 from django.core.exceptions import ValidationError
 from mutagen import File as MutagenFile
 
-from .bpm_extraction import strip_bpm_from_name
 from .models import Loop, Sample
 
 
@@ -165,66 +164,3 @@ class LoopBulkUploadAdminForm(forms.Form):
         return files
 
 
-class LoopUploadForm(forms.ModelForm):
-    audio_file = forms.FileField(
-        widget=forms.FileInput(attrs={
-            'class': 'form-control',
-            'accept': 'audio/*',
-        }),
-        validators=[validate_audio_duration_max(LOOP_MAX_DURATION_SECONDS)],
-        help_text='Maximum duration: 5 minutes'
-    )
-    
-    class Meta:
-        model = Loop
-        fields = ['name', 'genre', 'bpm', 'audio_file', 'keywords'] 
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Track title',
-            }),
-            'genre': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'bpm': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '120',
-                'min': '40',
-                'max': '300',
-            }),
-            'keywords': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter keywords',
-            }),
-        }
-
-    def clean_name(self):
-        name = self.cleaned_data.get('name', '')
-        cleaned_name = strip_bpm_from_name(name)
-        return cleaned_name or name
-
-class SampleUploadForm(forms.ModelForm):
-    audio_file = forms.FileField(
-        widget=forms.FileInput(attrs={
-            'class': 'form-control',
-            'accept': 'audio/*',
-        }),
-        validators=[validate_audio_duration_max(SAMPLE_MAX_DURATION_SECONDS)],
-        help_text='Maximum duration: 10 seconds'
-    )
-    
-    class Meta:
-        model = Sample
-        fields = ['name', 'sample_type', 'genre', 'audio_file']
-        widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Sample name',
-            }),
-            'sample_type': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-            'genre': forms.Select(attrs={
-                'class': 'form-control'
-            }),
-        }
