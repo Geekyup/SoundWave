@@ -12,3 +12,5 @@
 @import url('./profile.css');
 @import url('./footer.css');
 @import url('./responsive.css');
+
+.page-transition {\n  width: 100%;\n  min-height: 100%;\n  will-change: transform, opacity;\n}\n

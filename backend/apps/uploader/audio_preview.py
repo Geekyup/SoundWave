@@ -66,6 +66,23 @@ def _transcode_preview(source_path, output_path):
     return process.returncode == 0
 
 
+def _prepare_source_file(audio_field, source_name, temp_dir):
+    try:
+        return audio_field.path
+    except Exception:
+        pass
+
+    suffix = Path(source_name).suffix or '.bin'
+    temp_source = os.path.join(temp_dir, f'source{suffix}')
+
+    try:
+        with audio_field.open('rb') as source_stream, open(temp_source, 'wb') as target_stream:
+            shutil.copyfileobj(source_stream, target_stream)
+        return temp_source
+    except Exception:
+        return None
+
+
 def ensure_audio_preview(instance):
     """
     Build/refresh lightweight preview audio for faster streaming playback.
@@ -85,13 +102,16 @@ def ensure_audio_preview(instance):
         logger.warning('ffmpeg is not available, preview generation skipped for %s:%s', instance.__class__.__name__, instance.pk)
         return False
 
-    try:
-        source_path = audio_field.path
-    except Exception:
-        logger.exception('Unable to resolve source path for %s:%s', instance.__class__.__name__, instance.pk)
-        return False
-
     with tempfile.TemporaryDirectory(prefix='soundwave-preview-') as temp_dir:
+        source_path = _prepare_source_file(audio_field, source_name, temp_dir)
+        if not source_path:
+            logger.warning(
+                'Unable to resolve source path for %s:%s',
+                instance.__class__.__name__,
+                instance.pk,
+            )
+            return False
+
         temp_output = os.path.join(temp_dir, 'preview.m4a')
         ok = _transcode_preview(source_path, temp_output)
         if not ok or not os.path.exists(temp_output):

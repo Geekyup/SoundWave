@@ -1,8 +1,10 @@
 import zipfile
+from threading import Thread
 
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
+from django.db import close_old_connections, transaction
 
 from .models import DrumKit, DrumKitFile
 from .services import import_archive_to_kit
@@ -79,28 +81,23 @@ class DrumKitAdmin(admin.ModelAdmin):
             return
 
         replace_files = bool(form.cleaned_data.get('replace_files', True))
-        result = import_archive_to_kit(obj, replace_existing=replace_files)
-        created = result['created']
-        skipped = result['skipped']
-        errors = result['errors']
+        def _run_import(kit_id, replace_existing):
+            close_old_connections()
+            kit = DrumKit.objects.filter(pk=kit_id).first()
+            if not kit or not kit.archive_file:
+                return
+            import_archive_to_kit(kit, replace_existing=replace_existing)
+            close_old_connections()
 
-        if created:
-            messages.success(
-                request,
-                f'Drum kit import completed: {created} file(s) imported.',
-            )
-        if skipped:
-            messages.warning(
-                request,
-                f'Skipped {skipped} non-audio or invalid file(s).',
-            )
-        if errors:
-            preview = '; '.join(errors[:3])
-            tail = ' ...' if len(errors) > 3 else ''
-            messages.error(
-                request,
-                f'Import errors ({len(errors)}): {preview}{tail}',
-            )
+        transaction.on_commit(lambda: Thread(
+            target=_run_import,
+            args=(obj.pk, replace_files),
+            daemon=True,
+        ).start())
+        messages.info(
+            request,
+            'Archive import started in the background. Refresh this page in a few minutes to see files.',
+        )
 
 
 @admin.register(DrumKitFile)

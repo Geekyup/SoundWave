@@ -388,7 +388,7 @@
 
     function schedulePlayersInit(cards) {
         const queueToken = ++initQueueToken;
-        const immediateCount = 4;
+        const immediateCount = 8;
         const immediateCards = cards.slice(0, immediateCount);
         const deferredCards = cards.slice(immediateCount);
 

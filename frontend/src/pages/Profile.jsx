@@ -36,16 +36,6 @@ function sumDownloads(items) {
   return items.reduce((total, item) => total + (item.downloads || 0), 0);
 }
 
-function getMedian(numbers) {
-  if (!numbers.length) return null;
-  const sorted = [...numbers].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 0) {
-    return Math.round(((sorted[middle - 1] + sorted[middle]) / 2) * 10) / 10;
-  }
-  return sorted[middle];
-}
-
 function getTopGenre(items) {
   const map = new Map();
   items.forEach(item => {
@@ -273,15 +263,9 @@ export default function Profile() {
   const hasUploads = totalUploads > 0;
   const allItems = [...loops, ...samples, ...drumKits];
   const totalDownloads = sumDownloads(loops) + sumDownloads(samples) + sumDownloads(drumKits);
-  const averageDownloads = totalUploads ? (totalDownloads / totalUploads).toFixed(1) : '0';
   const uploadsLast30 = countRecentUploads(allItems, 30);
   const latestUploadAt = getLatestDate(allItems);
-  const topDownloads = allItems.reduce((acc, item) => Math.max(acc, item.downloads || 0), 0);
   const topGenre = getTopGenre(allItems);
-  const bpmValues = loops
-    .map(item => Number(item.bpm))
-    .filter(value => Number.isFinite(value) && value > 0);
-  const medianLoopBpm = getMedian(bpmValues);
   const topLoops = useMemo(
     () => [...loops].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
     [loops],
@@ -558,27 +542,6 @@ export default function Profile() {
                   )}
                 />
                 <StatCard
-                  label="Total downloads"
-                  value={totalDownloads}
-                  icon={(
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-                      <path d="M12 4v12"></path>
-                      <path d="M8 12l4 4 4-4"></path>
-                      <path d="M4 20h16"></path>
-                    </svg>
-                  )}
-                />
-                <StatCard
-                  label="Avg downloads / upload"
-                  value={averageDownloads}
-                  icon={(
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-                      <path d="M4 18l5-5 4 3 7-8"></path>
-                      <path d="M20 8v4h-4"></path>
-                    </svg>
-                  )}
-                />
-                <StatCard
                   label="Uploads in 30 days"
                   value={uploadsLast30}
                   icon={(
@@ -619,29 +582,11 @@ export default function Profile() {
                   )}
                 />
                 <StatCard
-                  label="Top downloads"
-                  value={topDownloads}
-                  icon={(
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-                      <path d="M12 17l-5 3 1.5-5.5L4 10.5h5.6L12 5l2.4 5.5H20l-4.5 4 1.5 5.5z"></path>
-                    </svg>
-                  )}
-                />
-                <StatCard
                   label="Main genre"
                   value={topGenre}
                   icon={(
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
                       <path d="M4 7h16M4 12h10M4 17h13"></path>
-                    </svg>
-                  )}
-                />
-                <StatCard
-                  label="Median loop BPM"
-                  value={medianLoopBpm ?? '-'}
-                  icon={(
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-                      <path d="M3 12h3l2-5 4 10 3-7 2 4h4"></path>
                     </svg>
                   )}
                 />
