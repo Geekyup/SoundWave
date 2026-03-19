@@ -65,3 +65,13 @@ export async function apiFetch(path, options = {}) {
   }
   return response;
 }
+
+export async function apiJson(path, options = {}, errorMessage = 'Request failed') {
+  const response = await apiFetch(path, options);
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = data?.detail || errorMessage;
+    throw new Error(message);
+  }
+  return data;
+}

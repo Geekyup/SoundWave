@@ -1,18 +1,15 @@
-import { apiFetch } from './client.js';
+import { apiFetch, apiJson } from './client.js';
 
 export async function listLoops(params = {}) {
   const search = new URLSearchParams(params);
   if (!search.has('include_waveform')) {
     search.set('include_waveform', '1');
   }
-  const response = await apiFetch(`/api/loops/?${search.toString()}`, {
-    method: 'GET',
-    skipAuth: true,
-  });
-  if (!response.ok) {
-    throw new Error('Failed to load loops');
-  }
-  return response.json();
+  return apiJson(
+    `/api/loops/?${search.toString()}`,
+    { method: 'GET', skipAuth: true },
+    'Failed to load loops',
+  );
 }
 
 export async function deleteLoop(loopId) {

@@ -1,18 +1,15 @@
-import { apiFetch } from './client.js';
+import { apiFetch, apiJson } from './client.js';
 
 export async function listSamples(params = {}) {
   const search = new URLSearchParams(params);
   if (!search.has('include_waveform')) {
     search.set('include_waveform', '1');
   }
-  const response = await apiFetch(`/api/samples/?${search.toString()}`, {
-    method: 'GET',
-    skipAuth: true,
-  });
-  if (!response.ok) {
-    throw new Error('Failed to load samples');
-  }
-  return response.json();
+  return apiJson(
+    `/api/samples/?${search.toString()}`,
+    { method: 'GET', skipAuth: true },
+    'Failed to load samples',
+  );
 }
 
 export async function deleteSample(sampleId) {
