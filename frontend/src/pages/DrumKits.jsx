@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
+import { getAccessToken } from '../api/client.js';
 import { listDrumKits } from '../api/drumKits.js';
 import Pagination from '../components/Pagination.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
@@ -11,6 +12,7 @@ export default function DrumKits() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isAuthenticated = Boolean(getAccessToken());
 
   const page = searchParams.get('page') || '1';
   const query = searchParams.get('q') || '';
@@ -94,27 +96,49 @@ export default function DrumKits() {
                 <>
                   <div className="drumkits-grid">
                     {kits.map(kit => (
-                      <Link to={`/drum-kits/${kit.slug}`} className="drumkit-card" key={kit.id}>
-                        <div className="drumkit-cover">
-                          {kit.cover_url ? (
-                            <img src={kit.cover_url} alt={kit.title} loading="lazy" />
-                          ) : (
-                            <span className="drumkit-cover-fallback">
-                              {kit.title.slice(0, 2).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="drumkit-card-body">
-                          <h3>{kit.title}</h3>
-                          <p className="drumkit-meta">
-                            {kit.author ? `by ${kit.author}` : 'Unknown author'}
-                          </p>
-                          <div className="drumkit-card-footer">
-                            <span className="drumkit-meta">{kit.files_count} files</span>
-                            <span className="drumkit-open">{kit.genre_display || kit.genre || 'Other'}</span>
+                      <article className="drumkit-card" key={kit.id}>
+                        <Link to={`/drum-kits/${kit.slug}`} className="drumkit-card-link">
+                          <div className="drumkit-cover">
+                            {kit.cover_url ? (
+                              <img src={kit.cover_url} alt={kit.title} loading="lazy" />
+                            ) : (
+                              <span className="drumkit-cover-fallback">
+                                {kit.title.slice(0, 2).toUpperCase()}
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      </Link>
+                          <div className="drumkit-card-body">
+                            <div className="drumkit-title-row">
+                              <h3>{kit.title}</h3>
+                              <span className="drumkit-genre">{kit.genre_display || kit.genre || 'Other'}</span>
+                            </div>
+                            <p className="drumkit-meta">
+                              {kit.author ? `by ${kit.author}` : 'Unknown author'}
+                            </p>
+                          </div>
+                        </Link>
+                        {isAuthenticated ? (
+                          <a
+                            href={kit.download_url}
+                            className="drumkit-download-btn"
+                            title="Download drum kit"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M6 7h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7z" />
+                              <path d="M9 7V6a3 3 0 0 1 6 0v1" />
+                            </svg>
+                            Download
+                          </a>
+                        ) : (
+                          <Link
+                            to="/login"
+                            className="drumkit-download-btn auth-required-download"
+                            title="Login to download"
+                          >
+                            Login
+                          </Link>
+                        )}
+                      </article>
                     ))}
                   </div>
                   <Pagination count={count} />
