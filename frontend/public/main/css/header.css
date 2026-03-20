@@ -94,8 +94,8 @@
 .site-header-shell .search-bar input:focus-visible {
     outline: none;
     background-color: var(--header-panel-hover);
-    border-color: rgba(107, 127, 247, 0.42);
-    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.12), inset 0 -1px 0 var(--color-accent);
+    border-color: rgba(167, 177, 190, 0.18);
+    box-shadow: none;
 }
 
 .site-header-shell .auth-buttons {
