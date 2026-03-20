@@ -8,6 +8,7 @@ from django.db import transaction
 from .bpm_extraction import extract_bpm_from_filename, strip_bpm_from_name
 from .forms import LoopBulkUploadAdminForm, SampleBulkUploadAdminForm
 from .models import Loop, Sample
+from .sample_type_extraction import detect_sample_type_and_clean_name
 
 
 @admin.register(Loop)
@@ -145,11 +146,15 @@ class SampleAdmin(admin.ModelAdmin):
 
                 for audio_file in files:
                     try:
-                        file_name = Path(audio_file.name).stem[:200]
+                        raw_name = Path(audio_file.name).stem[:200]
+                        cleaned_name, resolved_sample_type = detect_sample_type_and_clean_name(
+                            raw_name,
+                            sample_type,
+                        )
                         Sample.objects.create(
-                            name=file_name or 'untitled',
+                            name=cleaned_name or raw_name or 'untitled',
                             author=author,
-                            sample_type=sample_type,
+                            sample_type=resolved_sample_type,
                             genre=genre,
                             audio_file=audio_file,
                         )

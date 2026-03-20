@@ -107,6 +107,15 @@ export default function Home({ tab }) {
     sort: searchParams.get('sort') || '',
   }), [searchParams]);
 
+  const genreLabelByValue = useMemo(
+    () => Object.fromEntries(GENRE_CHOICES.map(item => [item.value, item.label])),
+    [],
+  );
+
+  const activeLoopGenreLabel = loopFilters.genre
+    ? (genreLabelByValue[loopFilters.genre] || loopFilters.genre)
+    : '';
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -199,6 +208,17 @@ export default function Home({ tab }) {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const applyLoopGenreFilter = genreValue => {
+    const next = new URLSearchParams(searchParams);
+    if (genreValue) {
+      next.set('genre', genreValue);
+    } else {
+      next.delete('genre');
+    }
+    next.set('page', '1');
+    setSearchParams(next, { replace: true });
   };
 
   const applyLoopFilters = e => {
@@ -387,9 +407,24 @@ export default function Home({ tab }) {
             <section className="section">
               <header className="section-header section-header--flex">
                 <h2>Popular Tracks</h2>
-                <button className="btn btn-secondary" id="loop-filter-btn" type="button" onClick={() => setModalOpen(true)}>
-                  Filter
-                </button>
+                <div className="section-header-actions">
+                  {activeLoopGenreLabel ? (
+                    <div className="active-loop-genre-chip" title={`Genre filter: ${activeLoopGenreLabel}`}>
+                      <span className="active-loop-genre-chip-value">{activeLoopGenreLabel}</span>
+                      <button
+                        type="button"
+                        className="active-loop-genre-chip-clear"
+                        onClick={() => applyLoopGenreFilter('')}
+                        aria-label="Clear genre filter"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : null}
+                  <button className="btn btn-secondary" id="loop-filter-btn" type="button" onClick={() => setModalOpen(true)}>
+                    Filter
+                  </button>
+                </div>
               </header>
 
               <div id="loop-filter-modal" className={`modal ${modalOpen ? 'show' : ''}`}>
@@ -615,7 +650,14 @@ export default function Home({ tab }) {
 
                         <div className="card-tags">
                           <span className="tag bpm-tag">{loop.bpm} bpm</span>
-                          <span className="tag genre-tag">{loop.genre_display}</span>
+                          <button
+                            type="button"
+                            className="tag genre-tag tag-button"
+                            onClick={() => applyLoopGenreFilter(loop.genre)}
+                            title={`Filter by genre: ${loop.genre_display}`}
+                          >
+                            {loop.genre_display}
+                          </button>
                           <span className="tag size-tag">{loop.file_size}</span>
                           {keywordTags.map(tag => (
                             <span className="tag keyword-tag" key={`${loop.id}-${tag}`}>{tag}</span>

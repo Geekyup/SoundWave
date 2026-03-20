@@ -9,15 +9,20 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async e => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
+    setIsSubmitting(true);
     try {
       await register(username, password, password2);
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError(err.message || 'Registration failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,6 +53,7 @@ export default function Register() {
                 name="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="form-group">
@@ -58,6 +64,7 @@ export default function Register() {
                 name="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="form-group">
@@ -68,12 +75,24 @@ export default function Register() {
                 name="password2"
                 value={password2}
                 onChange={e => setPassword2(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">Register</button>
-              <Link to="/login" className="btn btn-secondary">Already have an account</Link>
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <span className="btn-spinner" aria-hidden="true"></span>
+                    Creating account...
+                  </>
+                ) : (
+                  'Register'
+                )}
+              </button>
+              <Link to="/login" className="btn btn-secondary" aria-disabled={isSubmitting}>
+                Already have an account
+              </Link>
             </div>
           </form>
         </div>

@@ -20,6 +20,55 @@
     padding-top: var(--space-sm);
 }
 
+.section-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.active-loop-genre-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.52rem;
+    border-radius: 999px;
+    border: 1px solid rgba(107, 127, 247, 0.4);
+    background: rgba(107, 127, 247, 0.12);
+    color: #dce3ff;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.active-loop-genre-chip-label {
+    opacity: 0.75;
+    font-weight: 500;
+}
+
+.active-loop-genre-chip-value {
+    color: #ffffff;
+}
+
+.active-loop-genre-chip-clear {
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--transition-base);
+}
+
+.active-loop-genre-chip-clear:hover,
+.active-loop-genre-chip-clear:focus-visible {
+    background: rgba(255, 255, 255, 0.22);
+}
+
 .section-header h2 {
     font-size: 1.6rem;
     font-weight: 700;

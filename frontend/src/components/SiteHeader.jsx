@@ -29,10 +29,11 @@ export default function SiteHeader({ active = '', searchContent = null }) {
         {isAuth ? (
           <Link to="/profile" className="btn btn-secondary">Profile</Link>
         ) : (
-          <>
-            <Link to="/login" className="btn btn-secondary">Login</Link>
-            <Link to="/register" className="btn btn-primary">Register</Link>
-          </>
+          <div className="auth-inline-links">
+            <Link to="/register" className="auth-link">Sign up</Link>
+            <span className="auth-separator" aria-hidden="true">|</span>
+            <Link to="/login" className="auth-link">Sign in</Link>
+          </div>
         )}
       </div>
     </header>

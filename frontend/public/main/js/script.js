@@ -570,25 +570,87 @@
         }
     }
 
-    function handleDownload(btn, type) { // type: 'sample' | 'loop'
+    function parseFilename(contentDisposition, fallbackHref) {
+        const fallback = (() => {
+            try {
+                return decodeURIComponent(new URL(fallbackHref, window.location.origin).pathname.split('/').pop() || 'download');
+            } catch (_) {
+                return 'download';
+            }
+        })();
+
+        if (!contentDisposition) return fallback;
+        const utfMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utfMatch?.[1]) {
+            try {
+                return decodeURIComponent(utfMatch[1].replace(/["']/g, ''));
+            } catch (_) {
+                return utfMatch[1].replace(/["']/g, '') || fallback;
+            }
+        }
+
+        const regularMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+        if (regularMatch?.[1]) {
+            return regularMatch[1].trim();
+        }
+
+        return fallback;
+    }
+
+    async function handleDownload(btn, type) { // type: 'sample' | 'loop' | 'drumkit'
+        const href = btn.getAttribute('href');
+        if (!href) return;
+
         const card = btn.closest('.sample-card');
-        const cardId = card.dataset.cardId;
-        const key = `${type}_${cardId}`;
+        const cardId = card?.dataset?.cardId || '';
+        const key = cardId ? `${type}_${cardId}` : `${type}_${href}`;
         if (downloadedFiles.has(key)) return;
 
-        const a = document.createElement('a');
-        a.href = btn.href;
-        a.download = '';
-        document.body.appendChild(a).click();
-        document.body.removeChild(a);
+        const accessToken = localStorage.getItem('accessToken');
+        const headers = {};
+        if (accessToken) {
+            headers.Authorization = `Bearer ${accessToken}`;
+        }
 
-        downloadedFiles.add(key);
-        const numEl = document.getElementById(`downloads-count-${cardId}`)?.querySelector('.downloads-num');
-        if (numEl) {
-            numEl.textContent = parseInt(numEl.textContent) + 1;
-            const downloadsEl = numEl.closest('#downloads-count-' + cardId);
-            downloadsEl.style.animation = 'pulse 0.6s ease-out';
-            setTimeout(() => downloadsEl.style.animation = '', 600);
+        try {
+            const response = await fetch(href, {method: 'GET', headers});
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                alert('Ошибка: Требуется авторизация. Войдите снова.');
+                window.location.href = '/login';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Download failed: HTTP ${response.status}`);
+            }
+
+            const blob = await response.blob();
+            const filename = parseFilename(response.headers.get('Content-Disposition'), href);
+            const objectUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+
+            downloadedFiles.add(key);
+
+            if (cardId) {
+                const numEl = document.getElementById(`downloads-count-${cardId}`)?.querySelector('.downloads-num');
+                if (numEl) {
+                    const currentValue = parseInt(numEl.textContent, 10) || 0;
+                    numEl.textContent = String(currentValue + 1);
+                    const downloadsEl = numEl.closest('#downloads-count-' + cardId);
+                    downloadsEl.style.animation = 'pulse 0.6s ease-out';
+                    setTimeout(() => downloadsEl.style.animation = '', 600);
+                }
+            }
+        } catch (_) {
+            alert('Ошибка: не удалось скачать файл. Попробуйте снова.');
         }
     }
 
@@ -637,14 +699,17 @@
                 likeBtn.classList.toggle('liked');
                 return;
             }
-            const dlBtn = e.target.closest('.download-btn-bottom, .download-btn-rect');
+            const dlBtn = e.target.closest('.download-btn-bottom, .download-btn-rect, .drumkit-download-btn');
             if (dlBtn) {
                 if (dlBtn.classList.contains('auth-required-download')) {
                     return;
                 }
                 e.preventDefault();
                 e.stopPropagation();
-                handleDownload(dlBtn, dlBtn.classList.contains('download-btn-bottom') ? 'sample' : 'loop');
+                const type = dlBtn.classList.contains('download-btn-bottom')
+                    ? 'sample'
+                    : (dlBtn.classList.contains('drumkit-download-btn') ? 'drumkit' : 'loop');
+                handleDownload(dlBtn, type);
                 return;
             }
 

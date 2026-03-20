@@ -88,6 +88,18 @@
     .pagination {
         margin: var(--space-lg) 0;
     }
+
+    .section-header {
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .section-header-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
 }
 
 @media (max-width: 480px) {

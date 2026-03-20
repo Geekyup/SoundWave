@@ -124,8 +124,9 @@ export default function DrumKits() {
                             title="Download drum kit"
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                              <path d="M6 7h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7z" />
-                              <path d="M9 7V6a3 3 0 0 1 6 0v1" />
+                              <path d="M12 3v14" />
+                              <path d="M7 12l5 5 5-5" />
+                              <path d="M5 19h14" />
                             </svg>
                             Download
                           </a>

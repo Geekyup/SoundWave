@@ -42,11 +42,14 @@
 .btn-secondary:hover {
     background-color: var(--color-bg-card);
     border-color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(107, 127, 247, 0.16);
 }
 
 .btn-secondary:active {
     transform: translateY(0);
     border-color: var(--color-border);
+    box-shadow: var(--shadow-soft);
 }
 
 .user-menu .btn {
