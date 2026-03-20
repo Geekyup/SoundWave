@@ -1,16 +1,13 @@
 export const GENRE_CHOICES = [
-  { value: 'electronic', label: 'Electronic' },
   { value: 'hip-hop', label: 'Hip-Hop' },
+  { value: 'trap', label: 'Trap' },
   { value: 'hoodtrap', label: 'Hoodtrap' },
   { value: 'drill', label: 'Drill' },
-  { value: 'voice', label: 'Voice' },
-  { value: 'ambient', label: 'Ambient' },
-  { value: 'house', label: 'House' },
-  { value: 'techno', label: 'Techno' },
-  { value: 'drum-and-bass', label: 'Drum and Bass' },
-  { value: 'pop', label: 'Pop' },
-  { value: 'rock', label: 'Rock' },
-  { value: 'experimental', label: 'Experimental' },
+  { value: 'detroit', label: 'Detroit' },
+  { value: 'new-jazz', label: 'New jazz' },
+  { value: 'glo', label: 'Glo' },
+  { value: 'opium', label: 'Opium' },
+  { value: 'plug', label: 'Plug' },
   { value: 'other', label: 'Other' },
 ];
 

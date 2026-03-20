@@ -1,18 +1,15 @@
 from django.db import models
 
 GENRE_CHOICES = [
-    ('electronic', 'Electronic'),
     ('hip-hop', 'Hip-Hop'),
+    ('trap', 'Trap'),
     ('hoodtrap', 'Hoodtrap'),
     ('drill', 'Drill'),
-    ('voice', 'Voice'),
-    ('ambient', 'Ambient'),
-    ('house', 'House'),
-    ('techno', 'Techno'),
-    ('drum-and-bass', 'Drum and Bass'),
-    ('pop', 'Pop'),
-    ('rock', 'Rock'),
-    ('experimental', 'Experimental'),
+    ('detroit', 'Detroit'),
+    ('new-jazz', 'New jazz'),
+    ('glo', 'Glo'),
+    ('opium', 'Opium'),
+    ('plug', 'Plug'),
     ('other', 'Other'),
 ]
 
