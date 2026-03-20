@@ -3,6 +3,7 @@
     padding: calc(var(--header-height) + var(--space-xl)) var(--space-lg) var(--space-xl);
     max-width: 1080px;
     margin: 0 auto;
+    transition: padding 180ms ease;
 }
 
 .profile-auth-guard {

@@ -5,6 +5,7 @@
     background: linear-gradient(135deg, rgba(107, 127, 247, 0.12), transparent), var(--color-bg-primary);
     position: relative;
     overflow: hidden;
+    transition: margin-top 180ms ease;
 }
 
 .hero::after {

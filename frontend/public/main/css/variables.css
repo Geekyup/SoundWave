@@ -37,5 +37,7 @@
 
     /* Layout */
     --container-max-width: 1200px;
-    --header-height: 72px;
+    --header-row-height: 76px;
+    --catalog-nav-height: 58px;
+    --header-height: calc(var(--header-row-height) + var(--catalog-nav-height));
 }

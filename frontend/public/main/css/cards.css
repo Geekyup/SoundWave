@@ -5,6 +5,7 @@
     width: 100%;
     max-width: var(--container-max-width);
     margin: 0 auto;
+    transition: padding 180ms ease;
 }
 
 .main-content {
