@@ -128,6 +128,20 @@ class SampleSerializer(serializers.ModelSerializer):
         return data
 
 
+class MyDownloadsLoopSerializer(LoopSerializer):
+    downloaded_at = serializers.DateTimeField(read_only=True)
+
+    class Meta(LoopSerializer.Meta):
+        fields = LoopSerializer.Meta.fields + ['downloaded_at']
+
+
+class MyDownloadsSampleSerializer(SampleSerializer):
+    downloaded_at = serializers.DateTimeField(read_only=True)
+
+    class Meta(SampleSerializer.Meta):
+        fields = SampleSerializer.Meta.fields + ['downloaded_at']
+
+
 class MeSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', required=False)
     avatar_url = serializers.SerializerMethodField()
@@ -220,6 +234,13 @@ class DrumKitListSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         path = reverse('drumkits-download', args=[obj.slug])
         return request.build_absolute_uri(path) if request else path
+
+
+class MyDownloadsDrumKitSerializer(DrumKitListSerializer):
+    downloaded_at = serializers.DateTimeField(read_only=True)
+
+    class Meta(DrumKitListSerializer.Meta):
+        fields = DrumKitListSerializer.Meta.fields + ['downloaded_at']
 
 
 class DrumKitFileSerializer(serializers.ModelSerializer):

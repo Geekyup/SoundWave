@@ -59,6 +59,10 @@
         grid-area: auth;
     }
 
+    .site-header-shell .account-dropdown {
+        width: 208px;
+    }
+
     .hero h1 {
         font-size: clamp(2rem, 6vw, 2.5rem);
     }
@@ -177,6 +181,11 @@
     .site-header-shell .auth-inline-links,
     .site-header-shell .auth-user-links {
         gap: 0.6rem;
+    }
+
+    .site-header-shell .account-trigger {
+        width: 38px;
+        height: 38px;
     }
 
     .site-header-shell .auth-link {

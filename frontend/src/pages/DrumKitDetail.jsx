@@ -25,6 +25,11 @@ function renderFolderNodes(nodes, activeFolder, onSelectFolder) {
   ));
 }
 
+function resolveKitTitle(kit) {
+  const raw = typeof kit?.title === 'string' ? kit.title.trim() : '';
+  return raw || 'Drum Kit';
+}
+
 export default function DrumKitDetail() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -55,7 +60,7 @@ export default function DrumKitDetail() {
     setLoading(true);
     setError('');
 
-    getDrumKit(slug)
+    getDrumKit(slug, {}, { skipAuth: false })
       .then(data => {
         if (!active) return;
         setKit(data);
@@ -69,10 +74,10 @@ export default function DrumKitDetail() {
           setSearchParams(next, { replace: true });
         }
       })
-      .catch(() => {
+      .catch(err => {
         if (!active) return;
         setKit(null);
-        setError('Failed to load drum kit.');
+        setError(err?.message || 'Failed to load drum kit.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -87,6 +92,14 @@ export default function DrumKitDetail() {
     if (!kit?.files?.length) return [];
     return kit.files.filter(file => (file.folder_path || '') === selectedFolder);
   }, [kit, selectedFolder]);
+
+  const kitTitle = resolveKitTitle(kit);
+  const kitFilesCount = Number.isFinite(Number(kit?.files_count))
+    ? Number(kit.files_count)
+    : Array.isArray(kit?.files)
+      ? kit.files.length
+      : 0;
+  const folderTree = Array.isArray(kit?.folders_tree) ? kit.folders_tree : [];
 
   const handleSelectFolder = folder => {
     const next = new URLSearchParams(searchParams);
@@ -123,7 +136,7 @@ export default function DrumKitDetail() {
     <div className="page-wrapper">
       <SiteHeader
         active="drum-kits"
-        searchContent={<input type="text" disabled value={kit?.title || 'Drum kit'} readOnly />}
+        searchContent={<input type="text" disabled value={kitTitle} readOnly />}
       />
 
       <div className="content-wrapper drumkit-detail-wrapper">
@@ -142,20 +155,20 @@ export default function DrumKitDetail() {
                 <div className="drumkit-detail-top">
                   <div className="drumkit-detail-cover">
                     {kit.cover_url ? (
-                      <img src={kit.cover_url} alt={kit.title} />
+                      <img src={kit.cover_url} alt={kitTitle} />
                     ) : (
                       <span className="drumkit-detail-cover-fallback">
-                        {kit.title.slice(0, 2).toUpperCase()}
+                        {kitTitle.slice(0, 2).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="drumkit-detail-info">
                     <Link to="/drum-kits" className="drumkit-back-link">← Back to kits</Link>
                     <div className="drumkit-detail-title-row">
-                      <h1>{kit.title}</h1>
+                      <h1>{kitTitle}</h1>
                     </div>
                     <p className="drumkit-detail-meta">
-                      {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kit.files_count} files
+                      {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kitFilesCount} files
                     </p>
                     {kit.description ? <p className="drumkit-detail-description">{kit.description}</p> : null}
                     {kit.download_url ? (
@@ -181,7 +194,7 @@ export default function DrumKitDetail() {
                     Root
                   </button>
                   <div className="drumkit-folder-tree">
-                    {renderFolderNodes(kit.folders_tree, selectedFolder, handleSelectFolder)}
+                    {renderFolderNodes(folderTree, selectedFolder, handleSelectFolder)}
                   </div>
                 </aside>
 

@@ -1,0 +1,157 @@
+.downloads-library-wrapper {
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.downloads-library-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.downloads-library-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.4rem 1.6rem 1.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(255, 255, 255, 0.025);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2);
+}
+
+.downloads-library-header-copy {
+    max-width: 660px;
+}
+
+.downloads-library-kicker {
+    margin-bottom: 0.55rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.downloads-library-header h1 {
+    font-size: clamp(1.9rem, 3vw, 2.8rem);
+    line-height: 1.04;
+    letter-spacing: -0.045em;
+    margin-bottom: 0.5rem;
+}
+
+.downloads-library-header p {
+    color: rgba(255, 255, 255, 0.68);
+    max-width: 46rem;
+}
+
+.downloads-library-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.downloads-library-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.24rem;
+    background: rgba(255, 255, 255, 0.028);
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 14px;
+}
+
+.downloads-library-tab {
+    min-width: 128px;
+    min-height: 42px;
+    padding: 0 1rem;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.96rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: color 140ms ease, background-color 140ms ease;
+}
+
+.downloads-library-tab:hover,
+.downloads-library-tab:focus-visible {
+    outline: none;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.downloads-library-tab.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.downloads-library-count {
+    color: rgba(255, 255, 255, 0.56);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.downloads-library-guard {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 2rem;
+}
+
+.downloads-library-main .sample-card,
+.downloads-library-main .drumkit-card {
+    position: relative;
+}
+
+.downloads-library-main .drumkit-card-body {
+    gap: 0.15rem;
+}
+
+@media (max-width: 960px) {
+    .downloads-library-header,
+    .downloads-library-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .downloads-library-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .downloads-library-tab {
+        min-width: 120px;
+        flex: 0 0 auto;
+    }
+
+    .downloads-library-count {
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .downloads-library-header {
+        padding: 1.15rem 1rem 1.2rem;
+    }
+
+    .downloads-library-header h1 {
+        font-size: 1.85rem;
+    }
+
+    .downloads-library-tab {
+        min-width: 108px;
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+
+}

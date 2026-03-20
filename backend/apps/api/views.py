@@ -6,13 +6,16 @@ from django.db.models import (
     Q,
 )
 from django.http import FileResponse, Http404
+from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from apps.accounts.models import Profile
+from apps.accounts.models import Profile, UserDownload
 from apps.drumkits.models import DrumKit, DrumKitFile
 from apps.uploader.models import Loop, Sample
 from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_waveform
@@ -25,12 +28,35 @@ from .serializers import (
     DrumKitListSerializer,
     LoopSerializer,
     MeSerializer,
+    MyDownloadsDrumKitSerializer,
+    MyDownloadsLoopSerializer,
+    MyDownloadsSampleSerializer,
     RegisterSerializer,
     SampleSerializer,
 )
 
 
-def build_download_response(obj, model, cookie_prefix, request):
+def record_user_download(user, *, loop=None, sample=None, drumkit=None):
+    if not user or not user.is_authenticated:
+        return
+
+    lookup = {'user': user}
+    if loop is not None:
+        lookup['loop'] = loop
+    elif sample is not None:
+        lookup['sample'] = sample
+    elif drumkit is not None:
+        lookup['drumkit'] = drumkit
+    else:
+        return
+
+    UserDownload.objects.update_or_create(
+        **lookup,
+        defaults={'downloaded_at': timezone.now()},
+    )
+
+
+def build_download_response(obj, model, cookie_prefix, request, *, download_kwargs=None):
     try:
         response = FileResponse(
             obj.audio_file,
@@ -44,7 +70,49 @@ def build_download_response(obj, model, cookie_prefix, request):
     if cookie_key not in request.COOKIES:
         model.objects.filter(id=obj.id).update(downloads=F('downloads') + 1)
         response.set_cookie(cookie_key, 'true', max_age=600)
+
+    if download_kwargs:
+        record_user_download(request.user, **download_kwargs)
+
     return response
+
+
+def paginate_download_items(request, records_qs, *, relation_field, model, serializer_class, include_waveform=False):
+    paginator = PageNumberPagination()
+    paginator.page_size = api_settings.PAGE_SIZE
+    page = paginator.paginate_queryset(records_qs, request)
+
+    if not page:
+        serializer = serializer_class([], many=True, context={'request': request, 'include_waveform': include_waveform})
+        return paginator.get_paginated_response(serializer.data)
+
+    relation_id_field = f'{relation_field}_id'
+    object_ids = [getattr(record, relation_id_field) for record in page if getattr(record, relation_id_field)]
+
+    objects_qs = model.objects.filter(id__in=object_ids)
+    if model in (Loop, Sample) and not include_waveform:
+        objects_qs = objects_qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
+    if model is DrumKit:
+        objects_qs = objects_qs.annotate(files_count=Count('files', distinct=True))
+
+    objects_map = {obj.id: obj for obj in objects_qs}
+    ordered_items = []
+    for record in page:
+        obj = objects_map.get(getattr(record, relation_id_field))
+        if not obj:
+            continue
+        obj.downloaded_at = record.downloaded_at
+        ordered_items.append(obj)
+
+    serializer = serializer_class(
+        ordered_items,
+        many=True,
+        context={
+            'request': request,
+            'include_waveform': include_waveform,
+        },
+    )
+    return paginator.get_paginated_response(serializer.data)
 
 
 class LoopViewSet(viewsets.ModelViewSet):
@@ -78,7 +146,7 @@ class LoopViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, pk=None):
         obj = self.get_object()
-        return build_download_response(obj, Loop, 'downloaded_loop', request)
+        return build_download_response(obj, Loop, 'downloaded_loop', request, download_kwargs={'loop': obj})
 
 
 class SampleViewSet(viewsets.ModelViewSet):
@@ -108,7 +176,7 @@ class SampleViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, pk=None):
         obj = self.get_object()
-        return build_download_response(obj, Sample, 'downloaded_sample', request)
+        return build_download_response(obj, Sample, 'downloaded_sample', request, download_kwargs={'sample': obj})
 
 
 class DrumKitViewSet(viewsets.ModelViewSet):
@@ -173,6 +241,7 @@ class DrumKitViewSet(viewsets.ModelViewSet):
         if cookie_key not in request.COOKIES:
             DrumKit.objects.filter(id=kit.id).update(downloads=F('downloads') + 1)
             response.set_cookie(cookie_key, 'true', max_age=600)
+        record_user_download(request.user, drumkit=kit)
         return response
 
 
@@ -184,6 +253,57 @@ class MeView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         profile, _ = Profile.objects.get_or_create(user=self.request.user)
         return profile
+
+
+class MyDownloadsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        media_type = (request.query_params.get('type') or 'loop').strip().lower()
+        include_waveform = request.query_params.get('include_waveform') == '1'
+
+        if media_type == 'sample':
+            records_qs = UserDownload.objects.filter(
+                user=request.user,
+                sample__isnull=False,
+            ).order_by('-downloaded_at')
+            return paginate_download_items(
+                request,
+                records_qs,
+                relation_field='sample',
+                model=Sample,
+                serializer_class=MyDownloadsSampleSerializer,
+                include_waveform=include_waveform,
+            )
+
+        if media_type == 'drumkit':
+            records_qs = UserDownload.objects.filter(
+                user=request.user,
+                drumkit__isnull=False,
+            ).order_by('-downloaded_at')
+            return paginate_download_items(
+                request,
+                records_qs,
+                relation_field='drumkit',
+                model=DrumKit,
+                serializer_class=MyDownloadsDrumKitSerializer,
+            )
+
+        if media_type == 'loop':
+            records_qs = UserDownload.objects.filter(
+                user=request.user,
+                loop__isnull=False,
+            ).order_by('-downloaded_at')
+            return paginate_download_items(
+                request,
+                records_qs,
+                relation_field='loop',
+                model=Loop,
+                serializer_class=MyDownloadsLoopSerializer,
+                include_waveform=include_waveform,
+            )
+
+        return Response({'detail': 'Unsupported download type.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RegisterView(generics.CreateAPIView):

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { getAccessToken } from '../api/client.js';
+import { getMe } from '../api/me.js';
 
 const CATALOG_ITEMS = [
   { key: 'loops', label: 'Loops', href: '/loops', icon: 'note' },
@@ -39,13 +40,46 @@ function CatalogIcon({ type }) {
   );
 }
 
-export default function SiteHeader({ active = '', searchContent = null }) {
+export default function SiteHeader({ active = '', searchContent = null, showCatalogNav = true }) {
+  const location = useLocation();
   const token = getAccessToken();
   const isAuth = Boolean(token);
   const [isCatalogHidden, setIsCatalogHidden] = useState(false);
+  const [me, setMe] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const lastScrollYRef = useRef(0);
+  const accountMenuRef = useRef(null);
 
   useEffect(() => {
+    if (!isAuth) {
+      setMe(null);
+      setMenuOpen(false);
+      return undefined;
+    }
+
+    let active = true;
+
+    getMe()
+      .then(profile => {
+        if (!active) return;
+        setMe(profile);
+      })
+      .catch(() => {
+        if (!active) return;
+        setMe(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isAuth]);
+
+  useEffect(() => {
+    if (!showCatalogNav) {
+      setIsCatalogHidden(false);
+      return undefined;
+    }
+
     if (typeof window === 'undefined') return undefined;
 
     let ticking = false;
@@ -76,18 +110,54 @@ export default function SiteHeader({ active = '', searchContent = null }) {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [showCatalogNav]);
 
   useEffect(() => {
+    if (!showCatalogNav) {
+      document.body.classList.remove('catalog-nav-hidden');
+      return undefined;
+    }
+
     document.body.classList.toggle('catalog-nav-hidden', isCatalogHidden);
 
     return () => {
       document.body.classList.remove('catalog-nav-hidden');
     };
-  }, [isCatalogHidden]);
+  }, [isCatalogHidden, showCatalogNav]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (!accountMenuRef.current?.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  const userName = (me?.username || '').trim() || 'Account';
+  const userInitial = userName.charAt(0).toUpperCase() || 'U';
+  const accountMenuItems = [
+    { href: '/profile', label: 'Profile' },
+    { href: '/my-downloads', label: 'My downloads' },
+  ];
 
   return (
-    <div className={`site-header-shell ${isCatalogHidden ? 'catalog-nav-hidden' : ''}`}>
+    <div className={`site-header-shell ${showCatalogNav ? '' : 'without-catalog-nav'} ${isCatalogHidden ? 'catalog-nav-hidden' : ''}`}>
       <header className="header">
         <div className="container header-inner">
           <div className="logo">
@@ -102,7 +172,57 @@ export default function SiteHeader({ active = '', searchContent = null }) {
             {isAuth ? (
               <div className="auth-user-links">
                 <Link to="/upload" className="auth-link auth-link-muted">Upload</Link>
-                <Link to="/profile" className="auth-link auth-link-strong">Profile</Link>
+                <div className={`account-menu ${menuOpen ? 'open' : ''}`} ref={accountMenuRef}>
+                  <button
+                    type="button"
+                    className="account-trigger"
+                    aria-label="Open account menu"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                    onClick={() => setMenuOpen(prev => !prev)}
+                  >
+                    {me?.avatar_url ? (
+                      <img src={me.avatar_url} alt={`${userName} avatar`} className="account-trigger-image" />
+                    ) : (
+                      <span className="account-trigger-fallback">{userInitial}</span>
+                    )}
+                  </button>
+
+                  <div className="account-dropdown" role="menu" aria-label="Account menu">
+                    <div className="account-dropdown-header">
+                      <div className="account-dropdown-avatar" aria-hidden="true">
+                        {me?.avatar_url ? (
+                          <img src={me.avatar_url} alt="" className="account-dropdown-avatar-image" />
+                        ) : (
+                          <span>{userInitial}</span>
+                        )}
+                      </div>
+                      <div className="account-dropdown-meta">
+                        <strong>{userName}</strong>
+                        <span>Account</span>
+                      </div>
+                    </div>
+
+                    <div className="account-dropdown-list">
+                      {accountMenuItems.map(item => {
+                        const isActive = item.href === '/profile'
+                          ? location.pathname === '/profile' || location.pathname.startsWith('/profile/')
+                          : location.pathname === item.href;
+                        return (
+                          <Link
+                            key={item.href}
+                            to={item.href}
+                            className={`account-dropdown-item ${isActive ? 'active' : ''}`}
+                            role="menuitem"
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="auth-inline-links">
@@ -115,24 +235,26 @@ export default function SiteHeader({ active = '', searchContent = null }) {
         </div>
       </header>
 
-      <nav className="catalog-nav" aria-label="Catalog">
-        <div className="container catalog-nav-inner">
-          <div className="catalog-nav-track">
-            {CATALOG_ITEMS.map(item => (
-              <Link
-                key={item.key}
-                to={item.href}
-                className={`catalog-link ${active === item.key ? 'active' : ''}`}
-              >
-                <span className="catalog-link-icon">
-                  <CatalogIcon type={item.icon} />
-                </span>
-                <span className="catalog-link-label">{item.label}</span>
-              </Link>
-            ))}
+      {showCatalogNav ? (
+        <nav className="catalog-nav" aria-label="Catalog">
+          <div className="container catalog-nav-inner">
+            <div className="catalog-nav-track">
+              {CATALOG_ITEMS.map(item => (
+                <Link
+                  key={item.key}
+                  to={item.href}
+                  className={`catalog-link ${active === item.key ? 'active' : ''}`}
+                >
+                  <span className="catalog-link-icon">
+                    <CatalogIcon type={item.icon} />
+                  </span>
+                  <span className="catalog-link-label">{item.label}</span>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      ) : null}
     </div>
   );
 }

@@ -6,6 +6,7 @@ from .views import (
     DrumKitViewSet,
     LoopViewSet,
     MeView,
+    MyDownloadsView,
     RegisterView,
     SampleViewSet,
     WaveformCacheView,
@@ -21,6 +22,7 @@ urlpatterns = [
     path('auth/token/', TokenObtainPairView.as_view(), name='auth-token'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='auth-refresh'),
     path('me/', MeView.as_view(), name='me'),
+    path('my-downloads/', MyDownloadsView.as_view(), name='my-downloads'),
     path('waveforms/<str:kind>/<int:pk>/', WaveformCacheView.as_view(), name='waveform-cache'),
     path('', include(router.urls)),
 ]
