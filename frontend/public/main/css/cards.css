@@ -40,6 +40,12 @@
     font-weight: 600;
 }
 
+.active-loop-keyword-chip {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
+    color: #eef2ff;
+}
+
 .active-loop-genre-chip-label {
     opacity: 0.75;
     font-weight: 500;

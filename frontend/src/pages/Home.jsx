@@ -115,6 +115,7 @@ export default function Home({ tab }) {
   const activeLoopGenreLabel = loopFilters.genre
     ? (genreLabelByValue[loopFilters.genre] || loopFilters.genre)
     : '';
+  const activeLoopKeywordLabel = loopFilters.keywords.trim();
 
   useEffect(() => {
     let active = true;
@@ -216,6 +217,18 @@ export default function Home({ tab }) {
       next.set('genre', genreValue);
     } else {
       next.delete('genre');
+    }
+    next.set('page', '1');
+    setSearchParams(next, { replace: true });
+  };
+
+  const applyLoopKeywordFilter = keywordValue => {
+    const next = new URLSearchParams(searchParams);
+    const normalized = (keywordValue || '').trim();
+    if (normalized) {
+      next.set('keywords', normalized);
+    } else {
+      next.delete('keywords');
     }
     next.set('page', '1');
     setSearchParams(next, { replace: true });
@@ -416,6 +429,19 @@ export default function Home({ tab }) {
                         className="active-loop-genre-chip-clear"
                         onClick={() => applyLoopGenreFilter('')}
                         aria-label="Clear genre filter"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : null}
+                  {activeLoopKeywordLabel ? (
+                    <div className="active-loop-genre-chip active-loop-keyword-chip" title={`Keyword filter: ${activeLoopKeywordLabel}`}>
+                      <span className="active-loop-genre-chip-value">{activeLoopKeywordLabel}</span>
+                      <button
+                        type="button"
+                        className="active-loop-genre-chip-clear"
+                        onClick={() => applyLoopKeywordFilter('')}
+                        aria-label="Clear keyword filter"
                       >
                         ×
                       </button>
@@ -660,7 +686,15 @@ export default function Home({ tab }) {
                           </button>
                           <span className="tag size-tag">{loop.file_size}</span>
                           {keywordTags.map(tag => (
-                            <span className="tag keyword-tag" key={`${loop.id}-${tag}`}>{tag}</span>
+                            <button
+                              type="button"
+                              className="tag keyword-tag tag-button"
+                              key={`${loop.id}-${tag}`}
+                              onClick={() => applyLoopKeywordFilter(tag)}
+                              title={`Filter by keyword: ${tag}`}
+                            >
+                              {tag}
+                            </button>
                           ))}
                         </div>
                       </div>

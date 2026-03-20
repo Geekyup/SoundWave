@@ -1,25 +1,14 @@
 import { useSearchParams } from 'react-router-dom';
 
 const DEFAULT_PAGE_SIZE = 12;
-const ELLIPSIS = '…';
 
 function buildPageRange(current, total) {
-  if (total <= 7) {
+  if (total <= 5) {
     return Array.from({ length: total }, (_, idx) => idx + 1);
   }
 
-  const pages = [1];
-  const start = Math.max(2, current - 2);
-  const end = Math.min(total - 1, current + 2);
-
-  if (start > 2) pages.push(ELLIPSIS);
-  for (let i = start; i <= end; i += 1) {
-    pages.push(i);
-  }
-  if (end < total - 1) pages.push(ELLIPSIS);
-
-  pages.push(total);
-  return pages;
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: 5 }, (_, idx) => start + idx);
 }
 
 export default function Pagination({ count, isLoading = false }) {
@@ -76,11 +65,7 @@ export default function Pagination({ count, isLoading = false }) {
 
         {pageRange.map((page, index) => (
           <li className="pagination-item" key={`${page}-${index}`}>
-            {page === ELLIPSIS ? (
-              <span className="pagination-ellipsis" aria-hidden="true">
-                {ELLIPSIS}
-              </span>
-            ) : page === currentPage ? (
+            {page === currentPage ? (
               <span className="pagination-link btn btn-primary current" aria-current="page">
                 {page}
               </span>
