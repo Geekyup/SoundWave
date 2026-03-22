@@ -11,6 +11,7 @@ const Upload = lazy(() => import('./pages/Upload.jsx'));
 const DrumKits = lazy(() => import('./pages/DrumKits.jsx'));
 const DrumKitDetail = lazy(() => import('./pages/DrumKitDetail.jsx'));
 const MyDownloads = lazy(() => import('./pages/MyDownloads.jsx'));
+const ManageUploads = lazy(() => import('./pages/ManageUploads.jsx'));
 
 function RouteAudioGuard() {
   const location = useLocation();
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
           <Route path="/my-downloads" element={<MyDownloads />} />
+          <Route path="/manage-uploads" element={<ManageUploads />} />
           <Route path="/upload" element={<Upload />} />
         </Routes>
       </Suspense>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { getAccessToken } from '../api/client.js';
@@ -90,11 +90,6 @@ export default function MyDownloads() {
     }
   }, [items, activeType]);
 
-  const activeTabLabel = useMemo(
-    () => DOWNLOAD_TABS.find(item => item.value === activeType)?.label || 'Loops',
-    [activeType],
-  );
-
   const setType = nextType => {
     const next = new URLSearchParams(searchParams);
     next.set('type', nextType);
@@ -122,7 +117,11 @@ export default function MyDownloads() {
 
   return (
     <div className="page-wrapper downloads-library-page">
-      <SiteHeader active="" showCatalogNav={false} />
+      <SiteHeader
+        active=""
+        showCatalogNav={false}
+        searchContent={<input type="text" readOnly value="My downloads" aria-label="My downloads" />}
+      />
 
       <div className="content-wrapper downloads-library-wrapper">
         <main className="main-content downloads-library-main">
@@ -130,7 +129,6 @@ export default function MyDownloads() {
             <div className="downloads-library-header-copy">
               <p className="downloads-library-kicker">Library</p>
               <h1>My Downloads</h1>
-              <p>One clean place for the loops, samples, and drum kits you already saved.</p>
             </div>
           </section>
 
@@ -148,24 +146,24 @@ export default function MyDownloads() {
               ))}
             </div>
             <span className="downloads-library-count">
-              {count} {activeTabLabel.toLowerCase()}
+              {count} items
             </span>
           </section>
 
           {loading ? (
-            <div className="empty-state">
+            <div className="downloads-library-panel empty-state">
               <p>Loading downloads...</p>
             </div>
           ) : null}
 
           {!loading && error ? (
-            <div className="empty-state">
+            <div className="downloads-library-panel empty-state">
               <p>{error}</p>
             </div>
           ) : null}
 
           {!loading && !error ? (
-            <>
+            <section className="downloads-library-panel">
               {activeType === 'sample' ? (
                 items.length ? (
                   <div className="sample-grid samples-grid" id="samples-grid">
@@ -395,7 +393,7 @@ export default function MyDownloads() {
               {count > 12 ? (
                 <Pagination count={count} isLoading={loading} />
               ) : null}
-            </>
+            </section>
           ) : null}
         </main>
       </div>

@@ -1,0 +1,211 @@
+.manage-uploads-page {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 16%),
+        #0f1012;
+}
+
+.manage-uploads-content {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.manage-uploads-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.manage-uploads-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 1.5rem;
+}
+
+.manage-uploads-header-copy {
+    max-width: 720px;
+}
+
+.manage-uploads-kicker {
+    margin: 0 0 0.45rem;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.manage-uploads-header-copy h1 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    line-height: 1.06;
+    letter-spacing: -0.045em;
+}
+
+.manage-uploads-header-copy p {
+    margin: 0.45rem 0 0;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.manage-uploads-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.manage-uploads-metric {
+    padding: 0.82rem 0.95rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.manage-uploads-metric-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.manage-uploads-metric strong {
+    font-size: 1.45rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+}
+
+.manage-uploads-panel {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
+.manage-uploads-panel.empty-state {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    background: rgba(18, 19, 22, 0.9);
+}
+
+.manage-uploads-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.35rem;
+}
+
+.manage-uploads-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.manage-uploads-tab {
+    min-height: 40px;
+    padding: 0 0.8rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-base), color var(--transition-base);
+}
+
+.manage-uploads-tab:hover,
+.manage-uploads-tab:focus-visible {
+    outline: none;
+    background: rgba(255, 255, 255, 0.035);
+    color: #ffffff;
+}
+
+.manage-uploads-tab.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.manage-uploads-toolbar-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.manage-uploads-toolbar-meta strong {
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.manage-uploads-panel-body {
+    padding-top: 0.55rem;
+}
+
+.manage-uploads-page .profile-manage-notice {
+    margin-top: 0.9rem;
+    border-radius: 14px;
+}
+
+.manage-uploads-page .profile-manage-body {
+    margin-top: 0;
+}
+
+.manage-uploads-page .profile-manage-grid {
+    margin-top: 0;
+}
+
+.manage-uploads-page .profile-manage-empty {
+    color: rgba(255, 255, 255, 0.58);
+}
+
+@media (max-width: 960px) {
+    .manage-uploads-header,
+    .manage-uploads-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .manage-uploads-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .manage-uploads-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .manage-uploads-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .manage-uploads-panel {
+        padding: 0;
+    }
+
+    .manage-uploads-header-copy h1 {
+        font-size: 1.7rem;
+    }
+
+    .manage-uploads-tab {
+        flex: 0 0 auto;
+    }
+}

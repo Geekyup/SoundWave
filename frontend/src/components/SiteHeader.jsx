@@ -153,6 +153,7 @@ export default function SiteHeader({ active = '', searchContent = null, showCata
   const userInitial = userName.charAt(0).toUpperCase() || 'U';
   const accountMenuItems = [
     { href: '/profile', label: 'Profile' },
+    { href: '/manage-uploads', label: 'Manage uploads' },
     { href: '/my-downloads', label: 'My downloads' },
   ];
 

@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { logout } from '../api/auth.js';
 import { getAccessToken } from '../api/client.js';
 import { listDrumKits } from '../api/drumKits.js';
-import { deleteLoop, listLoops } from '../api/loops.js';
+import { listLoops } from '../api/loops.js';
 import { getMe } from '../api/me.js';
-import { deleteSample, listSamples } from '../api/samples.js';
-import Pagination from '../components/Pagination.jsx';
+import { listSamples } from '../api/samples.js';
 
 const MAX_PROFILE_FETCH_PAGES = 30;
-const MANAGE_PAGE_SIZE = 12;
 
 function formatDate(value) {
   if (!value) return '-';
@@ -114,7 +112,6 @@ function StatCard({ icon, label, value }) {
 export default function Profile() {
   const { username } = useParams();
   const navigate = useNavigate();
-  const [manageParams, setManageParams] = useSearchParams();
   const [me, setMe] = useState(null);
   const [meLoading, setMeLoading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -122,16 +119,10 @@ export default function Profile() {
   const [loops, setLoops] = useState([]);
   const [samples, setSamples] = useState([]);
   const [drumKits, setDrumKits] = useState([]);
-  const [manageNotice, setManageNotice] = useState('');
-  const [manageNoticeType, setManageNoticeType] = useState('');
-  const [deletingKey, setDeletingKey] = useState('');
 
   const token = getAccessToken();
   const isAuth = Boolean(token);
   const requestedUsername = (username || '').trim();
-  const manageTabParam = (manageParams.get('manage') || 'loop').toLowerCase();
-  const manageTab = ['loop', 'sample'].includes(manageTabParam) ? manageTabParam : 'loop';
-  const managePage = Number(manageParams.get('page') || '1');
 
   useEffect(() => {
     if (!isAuth) {
@@ -170,13 +161,6 @@ export default function Profile() {
   const isOwnProfile = Boolean(
     me?.username && profileUsername && me.username.toLowerCase() === profileUsername.toLowerCase(),
   );
-
-  const setManageTab = tab => {
-    const next = new URLSearchParams(manageParams);
-    next.set('manage', tab);
-    next.set('page', '1');
-    setManageParams(next, { replace: true });
-  };
 
   useEffect(() => {
     if (!profileUsername) {
@@ -223,19 +207,10 @@ export default function Profile() {
   }, [profileUsername]);
 
   useEffect(() => {
-    if (!manageNotice) return undefined;
-    const timer = window.setTimeout(() => {
-      setManageNotice('');
-      setManageNoticeType('');
-    }, 2400);
-    return () => window.clearTimeout(timer);
-  }, [manageNotice]);
-
-  useEffect(() => {
     if (window.__swInit) {
       window.__swInit();
     }
-  }, [loops, samples, manageTab]);
+  }, [loops, samples]);
 
   if (!isAuth && !requestedUsername) {
     return (
@@ -274,196 +249,6 @@ export default function Profile() {
     () => [...samples].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
     [samples],
   );
-  const manageOffset = Math.max(0, (managePage - 1) * MANAGE_PAGE_SIZE);
-  const pagedLoops = loops.slice(manageOffset, manageOffset + MANAGE_PAGE_SIZE);
-  const pagedSamples = samples.slice(manageOffset, manageOffset + MANAGE_PAGE_SIZE);
-  const manageCount = manageTab === 'sample' ? samples.length : loops.length;
-  const totalManagePages = Math.max(1, Math.ceil(manageCount / MANAGE_PAGE_SIZE));
-
-  useEffect(() => {
-    if (managePage <= totalManagePages) return;
-    const next = new URLSearchParams(manageParams);
-    next.set('page', '1');
-    setManageParams(next, { replace: true });
-  }, [managePage, totalManagePages, manageParams, setManageParams]);
-
-  const handleDeleteLoop = async loopId => {
-    if (!isOwnProfile) return;
-    if (!window.confirm('Delete this loop?')) return;
-    const rowKey = `loop-${loopId}`;
-    setDeletingKey(rowKey);
-    setManageNotice('');
-    try {
-      await deleteLoop(loopId);
-      setLoops(prev => prev.filter(item => item.id !== loopId));
-      setManageNoticeType('success');
-      setManageNotice('Loop deleted.');
-    } catch (_) {
-      setManageNoticeType('error');
-      setManageNotice('Failed to delete loop.');
-    } finally {
-      setDeletingKey('');
-    }
-  };
-
-  const handleDeleteSample = async sampleId => {
-    if (!isOwnProfile) return;
-    if (!window.confirm('Delete this sample?')) return;
-    const rowKey = `sample-${sampleId}`;
-    setDeletingKey(rowKey);
-    setManageNotice('');
-    try {
-      await deleteSample(sampleId);
-      setSamples(prev => prev.filter(item => item.id !== sampleId));
-      setManageNoticeType('success');
-      setManageNotice('Sample deleted.');
-    } catch (_) {
-      setManageNoticeType('error');
-      setManageNotice('Failed to delete sample.');
-    } finally {
-      setDeletingKey('');
-    }
-  };
-
-  const renderManageCards = () => {
-    if (manageTab === 'sample') {
-      if (!samples.length) return <p className="profile-manage-empty">No samples uploaded yet.</p>;
-      return (
-        <div className="sample-grid samples-grid profile-manage-grid">
-          {pagedSamples.map(sample => (
-            <div
-              className="sample-card sample-square sample-item profile-manage-card"
-              key={`sample-${sample.id}`}
-              id={`card-${sample.id}`}
-              data-card-id={sample.id}
-              data-url={sample.play_url || sample.audio_file}
-              data-kind="samples"
-              data-waveform-peaks={sample.waveform?.peaks?.length ? JSON.stringify(sample.waveform.peaks) : ''}
-              data-waveform-duration={sample.waveform?.duration || ''}
-              data-type={sample.sample_type}
-              data-genre={sample.genre}
-            >
-              <span className="downloads-count sample-downloads-top" id={`downloads-count-${sample.id}`}>
-                <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                <span className="downloads-num">{sample.downloads}</span>
-              </span>
-
-              <div className="sample-info">
-                <h3 className="sample-title">{sample.name}</h3>
-                <p className="sample-type">{sample.sample_type_display}</p>
-                <p className="sample-author">
-                  <span className="sample-author-prefix">by </span>
-                  <span className="sample-author-muted">{sample.author || 'Unknown'}</span>
-                </p>
-              </div>
-
-              <div className="sample-waveform-container">
-                <div className="sample-waveform" id={`waveform-${sample.id}`}></div>
-              </div>
-
-              <div className="sample-controls">
-                <button
-                  className="play-btn-main sample-play-btn"
-                  data-card-id={sample.id}
-                  data-url={sample.play_url || sample.audio_file}
-                  title="Play"
-                  type="button"
-                >
-                  <svg className="play-icon" viewBox="0 0 24 24" fill="white">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="sample-delete-btn"
-                  disabled={deletingKey === `sample-${sample.id}`}
-                  onClick={() => handleDeleteSample(sample.id)}
-                >
-                  {deletingKey === `sample-${sample.id}` ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (!loops.length) return <p className="profile-manage-empty">No loops uploaded yet.</p>;
-    return (
-      <div className="sample-grid profile-manage-grid">
-        {pagedLoops.map(loop => (
-          <div
-            className="sample-card"
-            id={`card-${loop.id}`}
-            data-card-id={loop.id}
-            data-url={loop.play_url || loop.audio_file}
-            data-kind="loops"
-            data-waveform-peaks={loop.waveform?.peaks?.length ? JSON.stringify(loop.waveform.peaks) : ''}
-            data-waveform-duration={loop.waveform?.duration || ''}
-            key={`loop-${loop.id}`}
-          >
-            <div className="card-header">
-              <div className="card-info">
-                <h3 className="card-title">{loop.name}</h3>
-                <div className="card-author">
-                  <div className="card-author-wrapper">
-                    <div className="card-author-avatar">
-                      {(loop.author || 'U').charAt(0).toUpperCase()}
-                    </div>
-                    <span className="author-link">{loop.author || 'Unknown'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="card-meta-top">
-                <span className="upload-date">{formatDate(loop.uploaded_at)}</span>
-              </div>
-            </div>
-
-            <div className="card-waveform">
-              <div className="waveform-container" id={`waveform-${loop.id}`}></div>
-            </div>
-
-            <div className="card-controls">
-              <div className="controls-right">
-                <span className="downloads-count" id={`downloads-count-${loop.id}`}>
-                  <svg className="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  <span className="downloads-num">{loop.downloads}</span>
-                </span>
-              </div>
-
-              <div className="controls-actions">
-                <button
-                  type="button"
-                  className="delete-btn-rect manage-delete-btn"
-                  disabled={deletingKey === `loop-${loop.id}`}
-                  onClick={() => handleDeleteLoop(loop.id)}
-                >
-                  {deletingKey === `loop-${loop.id}` ? 'Deleting...' : 'Delete'}
-                </button>
-                <button className="play-btn-rect" data-card-id={loop.id} data-url={loop.play_url || loop.audio_file} type="button">
-                  Play
-                </button>
-              </div>
-            </div>
-
-            <div className="card-tags">
-              <span className="tag bpm-tag">{loop.bpm} bpm</span>
-              <span className="tag genre-tag">{loop.genre_display}</span>
-              <span className="tag size-tag">{loop.file_size}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <div className="page-wrapper profile-page">
@@ -656,44 +441,6 @@ export default function Profile() {
                   </section>
                 </>
               )}
-
-              {isOwnProfile ? (
-                <section className="profile-compact-card profile-manage-panel">
-                  <div className="profile-manage-head">
-                    <h2>Manage Uploads</h2>
-                    <p>Select a category to manage your content.</p>
-                  </div>
-                  <div className="profile-manage-tabs" role="tablist" aria-label="Manage uploads">
-                    <button
-                      type="button"
-                      className={`profile-manage-tab ${manageTab === 'loop' ? 'active' : ''}`}
-                      onClick={() => setManageTab('loop')}
-                    >
-                      Loop
-                    </button>
-                    <button
-                      type="button"
-                      className={`profile-manage-tab ${manageTab === 'sample' ? 'active' : ''}`}
-                      onClick={() => setManageTab('sample')}
-                    >
-                      Sample
-                    </button>
-                  </div>
-
-                  {manageNotice ? (
-                    <div className={`profile-manage-notice ${manageNoticeType === 'error' ? 'error' : 'success'}`}>
-                      {manageNotice}
-                    </div>
-                  ) : null}
-
-                  <div className="profile-manage-body">
-                    {renderManageCards()}
-                    {manageCount > MANAGE_PAGE_SIZE ? (
-                      <Pagination count={manageCount} isLoading={loading} />
-                    ) : null}
-                  </div>
-                </section>
-              ) : null}
 
               <section className="profile-bottom-actions">
                 <Link to="/" className="btn btn-secondary profile-action-btn">Home</Link>

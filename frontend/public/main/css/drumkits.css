@@ -40,27 +40,37 @@
 }
 
 .profile-drumkit-card {
-    position: relative;
+    position: static;
 }
 
 .drumkit-delete-btn {
-    position: absolute;
-    bottom: 0.85rem;
-    right: 0.85rem;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid rgba(248, 113, 113, 0.35);
-    background: rgba(20, 20, 20, 0.7);
-    color: #fca5a5;
-    font-size: 0.78rem;
-    font-weight: 600;
-    transition: border-color var(--transition-base), background var(--transition-base), color var(--transition-base);
+    margin-top: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.75);
+    background: transparent;
+    color: #fecaca;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.drumkit-delete-btn svg {
+    width: 18px;
+    height: 18px;
 }
 
 .drumkit-delete-btn:hover:not(:disabled),
 .drumkit-delete-btn:focus-visible:not(:disabled) {
-    border-color: rgba(248, 113, 113, 0.6);
-    background: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.95);
+    color: #ffffff;
+    background: rgba(185, 28, 28, 0.14);
 }
 
 .drumkit-delete-btn:disabled {
