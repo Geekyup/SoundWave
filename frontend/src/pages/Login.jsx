@@ -26,13 +26,7 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <header className="header">
-        <div className="logo">
-          <Link to="/" style={{ color: 'inherit', textDecoration: 'none' }}>SoundWave</Link>
-        </div>
-      </header>
-
+    <div className="auth-page auth-page--no-header">
       <main className="auth-wrapper">
         <div className="auth-card">
           <h1>Login</h1>

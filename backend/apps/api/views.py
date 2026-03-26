@@ -1,25 +1,15 @@
-import os
-from django.db.models import (
-    Count,
-    F,
-    Prefetch,
-    Q,
-)
-from django.http import FileResponse, Http404
-from django.utils import timezone
+from django.db.models import Count, Prefetch, Q
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from apps.accounts.models import Profile, UserDownload
+from apps.accounts.models import Profile
 from apps.drumkits.models import DrumKit, DrumKitFile
+from apps.uploader.bpm_extraction import strip_bpm_from_name
 from apps.uploader.models import Loop, Sample
 from apps.uploader.waveform_cache import resolve_model_for_kind, set_cached_waveform
-from apps.uploader.bpm_extraction import strip_bpm_from_name
 
 from .filters import LoopFilter, SampleFilter
 from .permissions import IsAuthorOrStaffOrReadOnly
@@ -28,158 +18,99 @@ from .serializers import (
     DrumKitListSerializer,
     LoopSerializer,
     MeSerializer,
-    MyDownloadsDrumKitSerializer,
-    MyDownloadsLoopSerializer,
-    MyDownloadsSampleSerializer,
     RegisterSerializer,
     SampleSerializer,
+    build_waveform_payload,
+)
+from .services import (
+    DOWNLOAD_TYPE_SETTINGS,
+    UPLOAD_TYPE_SETTINGS,
+    create_download_response,
+    defer_waveform_fields,
+    get_download_records_queryset,
+    get_profile_summary_payload,
+    get_requested_media_type,
+    get_uploaded_media_queryset,
+    get_user_upload_counts,
+    normalize_waveform_peaks,
+    paginate_download_items,
+    paginate_queryset_items,
+    parse_waveform_duration,
+    request_includes_waveform,
+    unsupported_media_type_response,
 )
 
 
-def record_user_download(user, *, loop=None, sample=None, drumkit=None):
-    if not user or not user.is_authenticated:
-        return
+class WaveformContextMixin:
+    def should_include_waveform(self):
+        return request_includes_waveform(self.request)
 
-    lookup = {'user': user}
-    if loop is not None:
-        lookup['loop'] = loop
-    elif sample is not None:
-        lookup['sample'] = sample
-    elif drumkit is not None:
-        lookup['drumkit'] = drumkit
-    else:
-        return
-
-    UserDownload.objects.update_or_create(
-        **lookup,
-        defaults={'downloaded_at': timezone.now()},
-    )
+    def get_serializer_context(self):
+        serializer_context = super().get_serializer_context()
+        serializer_context['include_waveform'] = self.should_include_waveform()
+        return serializer_context
 
 
-def build_download_response(obj, model, cookie_prefix, request, *, download_kwargs=None):
-    try:
-        response = FileResponse(
-            obj.audio_file,
-            as_attachment=True,
-            filename=os.path.basename(obj.audio_file.name),
-        )
-    except FileNotFoundError:
-        raise Http404("File not found")
-
-    cookie_key = f'{cookie_prefix}_{obj.id}'
-    if cookie_key not in request.COOKIES:
-        model.objects.filter(id=obj.id).update(downloads=F('downloads') + 1)
-        response.set_cookie(cookie_key, 'true', max_age=600)
-
-    if download_kwargs:
-        record_user_download(request.user, **download_kwargs)
-
-    return response
-
-
-def paginate_download_items(request, records_qs, *, relation_field, model, serializer_class, include_waveform=False):
-    paginator = PageNumberPagination()
-    paginator.page_size = api_settings.PAGE_SIZE
-    page = paginator.paginate_queryset(records_qs, request)
-
-    if not page:
-        serializer = serializer_class([], many=True, context={'request': request, 'include_waveform': include_waveform})
-        return paginator.get_paginated_response(serializer.data)
-
-    relation_id_field = f'{relation_field}_id'
-    object_ids = [getattr(record, relation_id_field) for record in page if getattr(record, relation_id_field)]
-
-    objects_qs = model.objects.filter(id__in=object_ids)
-    if model in (Loop, Sample) and not include_waveform:
-        objects_qs = objects_qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
-    if model is DrumKit:
-        objects_qs = objects_qs.annotate(files_count=Count('files', distinct=True))
-
-    objects_map = {obj.id: obj for obj in objects_qs}
-    ordered_items = []
-    for record in page:
-        obj = objects_map.get(getattr(record, relation_id_field))
-        if not obj:
-            continue
-        obj.downloaded_at = record.downloaded_at
-        ordered_items.append(obj)
-
-    serializer = serializer_class(
-        ordered_items,
-        many=True,
-        context={
-            'request': request,
-            'include_waveform': include_waveform,
-        },
-    )
-    return paginator.get_paginated_response(serializer.data)
-
-
-class LoopViewSet(viewsets.ModelViewSet):
-    queryset = Loop.objects.all()
-    serializer_class = LoopSerializer
+class DownloadableAudioViewSet(WaveformContextMixin, viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
     parser_classes = [MultiPartParser, FormParser]
+    downloaded_model_class = None
+    download_cookie_name_prefix = ''
+    download_record_field_name = ''
+
+    def get_queryset(self):
+        return defer_waveform_fields(
+            super().get_queryset(),
+            self.should_include_waveform(),
+        )
+
+    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
+    def download(self, request, pk=None):
+        instance = self.get_object()
+        return create_download_response(
+            instance,
+            self.downloaded_model_class,
+            self.download_cookie_name_prefix,
+            request,
+            download_record_kwargs={self.download_record_field_name: instance},
+        )
+
+
+class LoopViewSet(DownloadableAudioViewSet):
+    queryset = Loop.objects.all()
+    serializer_class = LoopSerializer
     filterset_class = LoopFilter
     search_fields = ['name', 'author', 'keywords']
     ordering_fields = ['downloads', 'uploaded_at', 'bpm']
     ordering = ['-uploaded_at']
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.query_params.get('include_waveform') != '1':
-            qs = qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
-        return qs
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
-        return context
+    downloaded_model_class = Loop
+    download_cookie_name_prefix = 'downloaded_loop'
+    download_record_field_name = 'loop'
 
     def perform_create(self, serializer):
-        name = serializer.validated_data.get('name', '')
+        original_name = serializer.validated_data.get('name', '')
         serializer.save(
             author=self.request.user.username,
-            name=strip_bpm_from_name(name) or name,
+            name=strip_bpm_from_name(original_name) or original_name,
         )
 
-    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
-    def download(self, request, pk=None):
-        obj = self.get_object()
-        return build_download_response(obj, Loop, 'downloaded_loop', request, download_kwargs={'loop': obj})
 
-
-class SampleViewSet(viewsets.ModelViewSet):
+class SampleViewSet(DownloadableAudioViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
-    parser_classes = [MultiPartParser, FormParser]
     filterset_class = SampleFilter
     search_fields = ['name', 'author']
     ordering_fields = ['downloads', 'uploaded_at']
     ordering = ['-uploaded_at']
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.query_params.get('include_waveform') != '1':
-            qs = qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
-        return qs
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
-        return context
+    downloaded_model_class = Sample
+    download_cookie_name_prefix = 'downloaded_sample'
+    download_record_field_name = 'sample'
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user.username)
 
-    @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
-    def download(self, request, pk=None):
-        obj = self.get_object()
-        return build_download_response(obj, Sample, 'downloaded_sample', request, download_kwargs={'sample': obj})
 
-
-class DrumKitViewSet(viewsets.ModelViewSet):
+class DrumKitViewSet(WaveformContextMixin, viewsets.ModelViewSet):
     queryset = DrumKit.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrStaffOrReadOnly]
     lookup_field = 'slug'
@@ -189,27 +120,29 @@ class DrumKitViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        qs = super().get_queryset().annotate(
-            files_count=Count('files', distinct=True),
-        )
-        include_waveform = self.request.query_params.get('include_waveform') == '1'
-        if getattr(self, 'action', None) == 'retrieve':
-            files_qs = DrumKitFile.objects.all()
-            if not include_waveform:
-                files_qs = files_qs.defer('waveform_peaks', 'waveform_duration', 'waveform_source_file')
-            qs = qs.prefetch_related(Prefetch('files', queryset=files_qs))
+        queryset = super().get_queryset().annotate(files_count=Count('files', distinct=True))
+        should_include_waveform = self.should_include_waveform()
 
-        author_filter = (self.request.query_params.get('author') or '').strip()
-        if author_filter:
-            qs = qs.filter(author__iexact=author_filter)
+        if getattr(self, 'action', None) == 'retrieve':
+            file_queryset = defer_waveform_fields(
+                DrumKitFile.objects.all(),
+                should_include_waveform,
+            )
+            queryset = queryset.prefetch_related(Prefetch('files', queryset=file_queryset))
+
+        requested_author = (self.request.query_params.get('author') or '').strip()
+        if requested_author:
+            queryset = queryset.filter(author__iexact=requested_author)
 
         if self.request.user.is_staff:
-            return qs
+            return queryset
 
         if self.request.user.is_authenticated:
-            return qs.filter(Q(is_public=True) | Q(author__iexact=self.request.user.username))
+            return queryset.filter(
+                Q(is_public=True) | Q(author__iexact=self.request.user.username),
+            )
 
-        return qs.filter(is_public=True)
+        return queryset.filter(is_public=True)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -217,32 +150,22 @@ class DrumKitViewSet(viewsets.ModelViewSet):
         return DrumKitListSerializer
 
     def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['include_waveform'] = self.request.query_params.get('include_waveform') == '1'
-        context['folder_filter'] = self.request.query_params.get('folder', '')
-        return context
+        serializer_context = super().get_serializer_context()
+        serializer_context['folder_filter'] = self.request.query_params.get('folder', '')
+        return serializer_context
 
     @action(detail=True, methods=['get'], url_path='download', permission_classes=[permissions.IsAuthenticated])
     def download(self, request, slug=None):
-        kit = self.get_object()
-        if not kit.archive_file:
-            raise Http404('Archive file not found')
-
-        try:
-            response = FileResponse(
-                kit.archive_file,
-                as_attachment=True,
-                filename=os.path.basename(kit.archive_file.name),
-            )
-        except FileNotFoundError:
-            raise Http404('Archive file not found')
-
-        cookie_key = f'downloaded_drumkit_{kit.id}'
-        if cookie_key not in request.COOKIES:
-            DrumKit.objects.filter(id=kit.id).update(downloads=F('downloads') + 1)
-            response.set_cookie(cookie_key, 'true', max_age=600)
-        record_user_download(request.user, drumkit=kit)
-        return response
+        drumkit = self.get_object()
+        return create_download_response(
+            drumkit,
+            DrumKit,
+            'downloaded_drumkit',
+            request,
+            file_field_name='archive_file',
+            download_record_kwargs={'drumkit': drumkit},
+            missing_file_message='Archive file not found',
+        )
 
 
 class MeView(generics.RetrieveUpdateAPIView):
@@ -251,7 +174,7 @@ class MeView(generics.RetrieveUpdateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self):
-        profile, _ = Profile.objects.get_or_create(user=self.request.user)
+        profile, _created = Profile.objects.get_or_create(user=self.request.user)
         return profile
 
 
@@ -259,112 +182,141 @@ class MyDownloadsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        media_type = (request.query_params.get('type') or 'loop').strip().lower()
-        include_waveform = request.query_params.get('include_waveform') == '1'
+        media_type = get_requested_media_type(request)
+        download_settings = DOWNLOAD_TYPE_SETTINGS.get(media_type)
+        if download_settings is None:
+            return unsupported_media_type_response('download')
 
-        if media_type == 'sample':
-            records_qs = UserDownload.objects.filter(
-                user=request.user,
-                sample__isnull=False,
-            ).order_by('-downloaded_at')
-            return paginate_download_items(
-                request,
-                records_qs,
-                relation_field='sample',
-                model=Sample,
-                serializer_class=MyDownloadsSampleSerializer,
-                include_waveform=include_waveform,
+        should_include_waveform = (
+            request_includes_waveform(request)
+            and download_settings['allows_waveform']
+        )
+        download_records_queryset = get_download_records_queryset(
+            request.user,
+            download_settings['relation_field_name'],
+        )
+
+        return paginate_download_items(
+            request,
+            download_records_queryset,
+            relation_field_name=download_settings['relation_field_name'],
+            model_class=download_settings['model_class'],
+            serializer_class=download_settings['list_serializer_class'],
+            should_include_waveform=should_include_waveform,
+        )
+
+
+class MyUploadsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        media_type = get_requested_media_type(request)
+        upload_settings = UPLOAD_TYPE_SETTINGS.get(media_type)
+        if upload_settings is None:
+            return unsupported_media_type_response('upload')
+
+        should_include_waveform = (
+            request_includes_waveform(request)
+            and upload_settings['allows_waveform']
+        )
+        username = request.user.username
+        upload_counts = get_user_upload_counts(username)
+        extra_response_data = {
+            'counts': upload_counts,
+            'total_uploads': sum(upload_counts.values()),
+        }
+        uploaded_media_queryset = get_uploaded_media_queryset(
+            media_type,
+            username,
+            should_include_waveform=should_include_waveform,
+        )
+
+        return paginate_queryset_items(
+            request,
+            uploaded_media_queryset,
+            serializer_class=upload_settings['list_serializer_class'],
+            should_include_waveform=should_include_waveform,
+            extra_response_data=extra_response_data,
+        )
+
+
+class ProfileSummaryView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        requested_username = (request.query_params.get('username') or '').strip()
+        if requested_username:
+            profile_summary = get_profile_summary_payload(request, requested_username)
+            return Response(profile_summary)
+
+        if not request.user.is_authenticated:
+            return Response(
+                {'detail': 'Authentication credentials were not provided.'},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        if media_type == 'drumkit':
-            records_qs = UserDownload.objects.filter(
-                user=request.user,
-                drumkit__isnull=False,
-            ).order_by('-downloaded_at')
-            return paginate_download_items(
-                request,
-                records_qs,
-                relation_field='drumkit',
-                model=DrumKit,
-                serializer_class=MyDownloadsDrumKitSerializer,
-            )
-
-        if media_type == 'loop':
-            records_qs = UserDownload.objects.filter(
-                user=request.user,
-                loop__isnull=False,
-            ).order_by('-downloaded_at')
-            return paginate_download_items(
-                request,
-                records_qs,
-                relation_field='loop',
-                model=Loop,
-                serializer_class=MyDownloadsLoopSerializer,
-                include_waveform=include_waveform,
-            )
-
-        return Response({'detail': 'Unsupported download type.'}, status=status.HTTP_400_BAD_REQUEST)
+        profile_summary = get_profile_summary_payload(request, request.user.username)
+        return Response(profile_summary)
 
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
+
 class WaveformCacheView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request, kind, pk):
-        model, cache_kind = resolve_model_for_kind(kind)
-        if not model:
-            return Response({'detail': 'Unsupported media kind.'}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, media_kind, object_id):
+        model_class, _cache_kind = resolve_model_for_kind(media_kind)
+        if model_class is None:
+            return Response(
+                {'detail': 'Unsupported media kind.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        obj = model.objects.filter(pk=pk).only('id', 'audio_file').first()
-        if not obj:
+        media_object = model_class.objects.filter(pk=object_id).only(
+            'id',
+            'audio_file',
+            'waveform_peaks',
+            'waveform_duration',
+            'waveform_source_file',
+        ).first()
+        if media_object is None:
             return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        peaks = request.data.get('peaks')
-        if not isinstance(peaks, list):
-            return Response({'detail': 'peaks must be a list.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(peaks) < 16:
-            return Response({'detail': 'peaks list is too short.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if len(peaks) > 8192:
-            peaks = peaks[:8192]
-
-        normalized = []
-        for value in peaks:
-            try:
-                numeric = float(value)
-            except (TypeError, ValueError):
-                continue
-            if numeric > 1.0:
-                numeric = 1.0
-            if numeric < -1.0:
-                numeric = -1.0
-            normalized.append(round(numeric, 6))
-
-        if len(normalized) < 16:
-            return Response({'detail': 'peaks payload is invalid.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        duration_value = request.data.get('duration')
-        duration = None
-        if duration_value is not None:
-            try:
-                duration = round(float(duration_value), 3)
-                if duration <= 0 or duration > 7200:
-                    duration = None
-            except (TypeError, ValueError):
-                duration = None
-
-        stored = set_cached_waveform(
-            cache_kind,
-            obj.id,
-            obj.audio_file.name,
-            normalized,
-            duration=duration,
+        waveform_payload = build_waveform_payload(media_object)
+        return Response(
+            {
+                'cached': bool(waveform_payload),
+                'waveform': waveform_payload,
+            }
         )
-        if not stored:
+
+    def post(self, request, media_kind, object_id):
+        model_class, cache_kind = resolve_model_for_kind(media_kind)
+        if model_class is None:
+            return Response(
+                {'detail': 'Unsupported media kind.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        media_object = model_class.objects.filter(pk=object_id).only('id', 'audio_file').first()
+        if media_object is None:
+            return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        normalized_peaks, error_message = normalize_waveform_peaks(request.data.get('peaks'))
+        if error_message:
+            return Response({'detail': error_message}, status=status.HTTP_400_BAD_REQUEST)
+
+        was_stored = set_cached_waveform(
+            cache_kind,
+            media_object.id,
+            media_object.audio_file.name,
+            normalized_peaks,
+            duration=parse_waveform_duration(request.data.get('duration')),
+        )
+        if not was_stored:
             return Response({'detail': 'Object not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({'cached': True}, status=status.HTTP_201_CREATED)

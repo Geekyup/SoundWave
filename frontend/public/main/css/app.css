@@ -1,0 +1,20 @@
+@import url('./layout/header.css');
+@import url('./sections/hero.css');
+@import url('./components/buttons.css');
+@import url('./components/cards.css');
+@import url('./components/tags.css');
+@import url('./components/filters.css');
+@import url('./components/pagination.css');
+@import url('./components/modal.css');
+@import url('./pages/drumkits.css');
+@import url('./pages/profile.css');
+@import url('./pages/manage-uploads.css');
+@import url('./pages/downloads.css');
+@import url('./layout/footer.css');
+@import url('./utilities/responsive.css');
+
+.page-transition {
+    width: 100%;
+    min-height: 100%;
+    will-change: transform, opacity;
+}

@@ -40,7 +40,13 @@ function CatalogIcon({ type }) {
   );
 }
 
-export default function SiteHeader({ active = '', searchContent = null, showCatalogNav = true }) {
+export default function SiteHeader({
+  active = '',
+  searchContent = null,
+  showCatalogNav = true,
+  showSearch = true,
+  showUploadLink = true,
+}) {
   const location = useLocation();
   const token = getAccessToken();
   const isAuth = Boolean(token);
@@ -156,23 +162,32 @@ export default function SiteHeader({ active = '', searchContent = null, showCata
     { href: '/manage-uploads', label: 'Manage uploads' },
     { href: '/my-downloads', label: 'My downloads' },
   ];
+  const headerInnerClassName = [
+    'container',
+    'header-inner',
+    showSearch ? '' : 'without-search',
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={`site-header-shell ${showCatalogNav ? '' : 'without-catalog-nav'} ${isCatalogHidden ? 'catalog-nav-hidden' : ''}`}>
       <header className="header">
-        <div className="container header-inner">
+        <div className={headerInnerClassName}>
           <div className="logo">
             <Link to="/">SoundWave</Link>
           </div>
 
-          <div className="search-bar">
-            {searchContent || <input type="text" placeholder="Search samples, loops..." />}
-          </div>
+          {showSearch ? (
+            <div className="search-bar">
+              {searchContent || <input type="text" placeholder="Search samples, loops..." />}
+            </div>
+          ) : null}
 
           <div className="auth-buttons">
             {isAuth ? (
               <div className="auth-user-links">
-                <Link to="/upload" className="auth-link auth-link-muted">Upload</Link>
+                {showUploadLink ? (
+                  <Link to="/upload" className="auth-link auth-link-muted">Upload</Link>
+                ) : null}
                 <div className={`account-menu ${menuOpen ? 'open' : ''}`} ref={accountMenuRef}>
                   <button
                     type="button"

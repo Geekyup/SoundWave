@@ -1,0 +1,82 @@
+.btn {
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition-base), box-shadow var(--transition-base), background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+    border: 1px solid transparent;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.25);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn[aria-disabled="true"] {
+    pointer-events: none;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: #ffffff;
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(107, 127, 247, 0.16);
+}
+
+.btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(0);
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-secondary {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+    background-color: var(--color-bg-card);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(107, 127, 247, 0.16);
+}
+
+.btn-secondary:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: translateY(0);
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: button-spin 0.7s linear infinite;
+}
+
+@keyframes button-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

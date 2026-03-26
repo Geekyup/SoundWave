@@ -1,0 +1,519 @@
+.drumkits-main {
+    min-height: calc(100vh - var(--header-height) - 180px);
+}
+
+.drumkits-count {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.drumkits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.15rem;
+    margin-top: 1.2rem;
+}
+
+.drumkit-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(18, 18, 20, 0.92);
+    min-height: 350px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+}
+
+.drumkit-card-link {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+    gap: 0.65rem;
+    flex: 1;
+}
+
+.manage-uploads-drumkit-card {
+    position: static;
+}
+
+.drumkit-card-skeleton {
+    pointer-events: none;
+}
+
+.drumkit-skeleton-cover,
+.drumkit-skeleton-action {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.drumkit-skeleton-cover::after,
+.drumkit-skeleton-action::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+.drumkit-skeleton-title {
+    width: 62%;
+    max-width: none;
+    height: 16px;
+}
+
+.drumkit-skeleton-genre {
+    width: 64px;
+    height: 24px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.drumkit-skeleton-meta {
+    width: 48%;
+    max-width: none;
+}
+
+.drumkit-skeleton-action {
+    width: 100%;
+    height: 46px;
+    border-radius: 12px;
+}
+
+.drumkit-delete-btn {
+    margin-top: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.75);
+    background: transparent;
+    color: #fecaca;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.drumkit-delete-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.drumkit-delete-btn:hover:not(:disabled),
+.drumkit-delete-btn:focus-visible:not(:disabled) {
+    border-color: rgba(248, 113, 113, 0.95);
+    color: #ffffff;
+    background: rgba(185, 28, 28, 0.14);
+}
+
+.drumkit-delete-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.drumkit-card:hover,
+.drumkit-card:focus-visible {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(22, 22, 24, 0.95);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.32);
+}
+
+.drumkit-cover {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    background: #1a1a1c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.drumkit-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.drumkit-cover-fallback {
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.04em;
+}
+
+.drumkit-card-body {
+    padding: 0.05rem 0.25rem 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+}
+
+.drumkit-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.drumkit-card-body h3 {
+    font-size: 1rem;
+    line-height: 1.35;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text-primary);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.drumkit-title-row h3 {
+    flex: 1;
+    min-width: 0;
+}
+
+.drumkit-meta {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.drumkit-genre {
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.drumkit-download-btn {
+    margin-top: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    border: 1px solid rgba(59, 130, 246, 0.75);
+    color: #e6f0ff;
+    background: transparent;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.drumkit-download-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.drumkit-download-btn:hover,
+.drumkit-download-btn:focus-visible {
+    border-color: rgba(96, 165, 250, 0.95);
+    color: #ffffff;
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.drumkit-detail-wrapper {
+    align-items: flex-start;
+}
+
+.drumkit-detail-main {
+    min-height: calc(100vh - var(--header-height) - 180px);
+}
+
+.drumkit-detail-header {
+    margin-bottom: 1rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.drumkit-detail-top {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.drumkit-detail-cover {
+    width: 150px;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(145deg, #2c2c2c, #171717);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drumkit-detail-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.drumkit-detail-cover-fallback {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+}
+
+.drumkit-back-link {
+    display: inline-block;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.drumkit-back-link:hover {
+    color: var(--color-accent);
+}
+
+.drumkit-detail-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.drumkit-detail-title-row h1 {
+    font-size: 1.6rem;
+    line-height: 1.2;
+}
+
+.drumkit-detail-meta {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.drumkit-detail-description {
+    color: var(--color-text-secondary);
+    margin-top: 0.6rem;
+}
+
+.drumkit-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.8rem;
+}
+
+.drumkit-download-btn {
+    width: auto !important;
+    min-width: 0;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    border-radius: 8px;
+}
+
+.drumkit-browser {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1rem;
+}
+
+.drumkit-sidebar {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    padding: 0.8rem;
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+}
+
+.drumkit-folder-tree {
+    margin-top: 0.45rem;
+}
+
+.drumkit-folder-node {
+    margin-top: 0.2rem;
+}
+
+.drumkit-folder-children {
+    margin-left: 0.65rem;
+    padding-left: 0.55rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.drumkit-folder-btn {
+    width: 100%;
+    text-align: left;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    padding: 0.32rem 0.5rem;
+    font-size: 0.86rem;
+    cursor: pointer;
+    transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base);
+}
+
+.drumkit-folder-btn:hover {
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.drumkit-folder-btn.active {
+    color: var(--color-text-primary);
+    border-color: rgba(107, 127, 247, 0.45);
+    background: rgba(107, 127, 247, 0.14);
+}
+
+.drumkit-files {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-card);
+    overflow: hidden;
+}
+
+.drumkit-files-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.drumkit-files-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.drumkit-files-header span {
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
+}
+
+.drumkit-file-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.drumkit-file-row {
+    appearance: none;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.drumkit-file-row:last-child {
+    border-bottom: none;
+}
+
+.drumkit-file-row:hover,
+.drumkit-file-row:focus-visible {
+    background: rgba(107, 127, 247, 0.08);
+}
+
+.drumkit-file-row.playing {
+    background: rgba(107, 127, 247, 0.16);
+}
+
+.drumkit-file-name {
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.drumkit-file-path {
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.3;
+}
+
+.drumkit-file-side {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.drumkit-file-state {
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    min-width: 84px;
+    text-align: right;
+}
+
+.drumkit-file-row.playing .drumkit-file-state {
+    color: #9fb0ff;
+    font-weight: 600;
+}
+
+@media (max-width: 980px) {
+    .drumkit-detail-top {
+        grid-template-columns: 120px 1fr;
+    }
+
+    .drumkit-detail-cover {
+        width: 120px;
+    }
+
+    .drumkit-browser {
+        grid-template-columns: 1fr;
+    }
+
+    .drumkit-sidebar {
+        max-height: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .drumkit-detail-top {
+        grid-template-columns: 1fr;
+    }
+
+    .drumkit-detail-cover {
+        width: 108px;
+    }
+
+    .drumkit-detail-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .drumkit-file-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .drumkit-file-side {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

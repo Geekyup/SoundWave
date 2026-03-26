@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { apiFetch, getAccessToken } from '../api/client.js';
 import { GENRE_CHOICES, SAMPLE_TYPE_CHOICES } from '../constants.js';
 import Select from '../components/Select.jsx';
+import { patchSearchParams } from '../utils/searchParams.js';
 
 const initialLoop = {
   name: '',
@@ -27,6 +28,8 @@ export default function Upload() {
   const [sampleForm, setSampleForm] = useState(initialSample);
   const [message, setMessage] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [isFileDragActive, setIsFileDragActive] = useState(false);
+  const fileDragDepthRef = useRef(0);
   const selectedFileName = uploadType === 'loop'
     ? loopForm.audio_file?.name
     : sampleForm.audio_file?.name;
@@ -52,14 +55,20 @@ export default function Upload() {
     );
   }
 
+  const fileInputLabelClassName = [
+    'file-input-label',
+    selectedFileName ? 'has-file' : '',
+    isFileDragActive ? 'active' : '',
+  ].filter(Boolean).join(' ');
+
   const setType = type => {
-    const next = new URLSearchParams(searchParams);
-    next.set('type', type);
-    setSearchParams(next, { replace: true });
+    setSearchParams(
+      patchSearchParams(searchParams, { type }),
+      { replace: true },
+    );
   };
 
-  const handleFileChange = (e, type) => {
-    const file = e.target.files?.[0] || null;
+  const applySelectedFile = (type, file) => {
     if (type === 'loop') {
       setLoopForm(prev => ({
         ...prev,
@@ -73,6 +82,38 @@ export default function Upload() {
         name: prev.name || (file ? file.name.replace(/\.[^/.]+$/, '') : ''),
       }));
     }
+  };
+
+  const handleFileChange = (e, type) => {
+    applySelectedFile(type, e.target.files?.[0] || null);
+  };
+
+  const handleFileDragEnter = e => {
+    e.preventDefault();
+    fileDragDepthRef.current += 1;
+    setIsFileDragActive(true);
+  };
+
+  const handleFileDragOver = e => {
+    e.preventDefault();
+    if (!isFileDragActive) {
+      setIsFileDragActive(true);
+    }
+  };
+
+  const handleFileDragLeave = e => {
+    e.preventDefault();
+    fileDragDepthRef.current = Math.max(0, fileDragDepthRef.current - 1);
+    if (fileDragDepthRef.current === 0) {
+      setIsFileDragActive(false);
+    }
+  };
+
+  const handleFileDrop = e => {
+    e.preventDefault();
+    fileDragDepthRef.current = 0;
+    setIsFileDragActive(false);
+    applySelectedFile(uploadType, e.dataTransfer?.files?.[0] || null);
   };
 
   const handleSubmit = async e => {
@@ -157,7 +198,7 @@ export default function Upload() {
             </div>
           ) : null}
 
-          <form className="upload-form" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="form-section file-section">
               <div className="file-input-wrapper">
                 <input
@@ -168,7 +209,14 @@ export default function Upload() {
                   accept="audio/*"
                   onChange={e => handleFileChange(e, uploadType)}
                 />
-                <label htmlFor="audio_file" className={`file-input-label ${selectedFileName ? 'has-file' : ''}`}>
+                <label
+                  htmlFor="audio_file"
+                  className={fileInputLabelClassName}
+                  onDragEnter={handleFileDragEnter}
+                  onDragOver={handleFileDragOver}
+                  onDragLeave={handleFileDragLeave}
+                  onDrop={handleFileDrop}
+                >
                   <div className="file-input-content">
                     <div className="file-input-text">
                       <span className="file-input-main">Choose a file or drag it here</span>

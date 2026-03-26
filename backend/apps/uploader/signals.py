@@ -8,37 +8,31 @@ from .audio_preview import ensure_audio_preview
 from .models import Loop, Sample
 
 
-def _schedule_preview_generation(instance):
-    model = instance.__class__
-    instance_id = instance.pk
+def load_instance_and_generate_preview(model_class, instance_id):
+    saved_instance = model_class.objects.filter(pk=instance_id).first()
+    if saved_instance is None:
+        return
 
-    def _worker():
-        obj = model.objects.filter(pk=instance_id).first()
-        if not obj:
-            return
-        ensure_audio_preview(obj)
-
-    Thread(target=_worker, daemon=True).start()
+    ensure_audio_preview(saved_instance)
 
 
-def _needs_preview_refresh(instance):
-    audio_name = (getattr(getattr(instance, 'audio_file', None), 'name', None) or '').strip()
-    if not audio_name:
-        return False
-    preview_name = (getattr(getattr(instance, 'preview_file', None), 'name', None) or '').strip()
-    preview_source = (getattr(instance, 'preview_source_file', None) or '').strip()
-    return not preview_name or preview_source != audio_name
+def schedule_preview_generation(instance):
+    worker_thread = Thread(
+        target=load_instance_and_generate_preview,
+        args=(instance.__class__, instance.pk),
+        daemon=True,
+    )
+    worker_thread.start()
+
+
+def instance_needs_preview_refresh(instance):
+    return bool(instance.get_audio_file_name()) and not instance.has_current_preview()
 
 
 @receiver(post_save, sender=Loop)
-def loop_post_save_generate_preview(sender, instance, **kwargs):
-    if not _needs_preview_refresh(instance):
-        return
-    transaction.on_commit(lambda: _schedule_preview_generation(instance))
-
-
 @receiver(post_save, sender=Sample)
-def sample_post_save_generate_preview(sender, instance, **kwargs):
-    if not _needs_preview_refresh(instance):
+def generate_preview_after_save(_sender, instance, **_kwargs):
+    if not instance_needs_preview_refresh(instance):
         return
-    transaction.on_commit(lambda: _schedule_preview_generation(instance))
+
+    transaction.on_commit(lambda: schedule_preview_generation(instance))

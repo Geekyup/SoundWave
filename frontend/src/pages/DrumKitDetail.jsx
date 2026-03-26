@@ -3,7 +3,9 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { getDrumKit } from '../api/drumKits.js';
 import { getAccessToken } from '../api/client.js';
-import SiteHeader from '../components/SiteHeader.jsx';
+import CatalogPageLayout from '../components/CatalogPageLayout.jsx';
+import { resolveDrumKitTitle } from '../components/DrumKitCard.jsx';
+import { patchSearchParams } from '../utils/searchParams.js';
 
 function renderFolderNodes(nodes, activeFolder, onSelectFolder) {
   if (!nodes?.length) return null;
@@ -25,16 +27,11 @@ function renderFolderNodes(nodes, activeFolder, onSelectFolder) {
   ));
 }
 
-function resolveKitTitle(kit) {
-  const raw = typeof kit?.title === 'string' ? kit.title.trim() : '';
-  return raw || 'Drum Kit';
-}
-
 export default function DrumKitDetail() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [kit, setKit] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [playingFileId, setPlayingFileId] = useState(null);
   const audioRef = useRef(null);
@@ -67,11 +64,10 @@ export default function DrumKitDetail() {
 
         if (!searchParams.get('folder') && data.files?.length) {
           const firstFolder = data.files[0].folder_path || '';
-          const next = new URLSearchParams(searchParams);
-          if (firstFolder) {
-            next.set('folder', firstFolder);
-          }
-          setSearchParams(next, { replace: true });
+          setSearchParams(
+            patchSearchParams(searchParams, { folder: firstFolder || null }),
+            { replace: true },
+          );
         }
       })
       .catch(err => {
@@ -93,7 +89,7 @@ export default function DrumKitDetail() {
     return kit.files.filter(file => (file.folder_path || '') === selectedFolder);
   }, [kit, selectedFolder]);
 
-  const kitTitle = resolveKitTitle(kit);
+  const kitTitle = resolveDrumKitTitle(kit);
   const kitFilesCount = Number.isFinite(Number(kit?.files_count))
     ? Number(kit.files_count)
     : Array.isArray(kit?.files)
@@ -102,13 +98,10 @@ export default function DrumKitDetail() {
   const folderTree = Array.isArray(kit?.folders_tree) ? kit.folders_tree : [];
 
   const handleSelectFolder = folder => {
-    const next = new URLSearchParams(searchParams);
-    if (folder) {
-      next.set('folder', folder);
-    } else {
-      next.delete('folder');
-    }
-    setSearchParams(next, { replace: true });
+    setSearchParams(
+      patchSearchParams(searchParams, { folder: folder || null }),
+      { replace: true },
+    );
   };
 
   const handleTogglePlay = async file => {
@@ -133,115 +126,106 @@ export default function DrumKitDetail() {
   };
 
   return (
-    <div className="page-wrapper">
-      <SiteHeader
-        active="drum-kits"
-        searchContent={<input type="text" disabled value={kitTitle} readOnly />}
-      />
+    <CatalogPageLayout
+      active="drum-kits"
+      showSearch={false}
+      showUploadLink={false}
+      contentClassName="drumkit-detail-wrapper"
+      mainClassName="drumkit-detail-main"
+    >
+      {loading ? (
+        <div className="empty-state"><p>Loading kit...</p></div>
+      ) : null}
 
-      <div className="content-wrapper drumkit-detail-wrapper">
-        <main className="main-content drumkit-detail-main">
-          {loading ? (
-            <div className="empty-state"><p>Loading kit...</p></div>
-          ) : null}
+      {!loading && error ? (
+        <div className="empty-state"><p>{error}</p></div>
+      ) : null}
 
-          {!loading && error ? (
-            <div className="empty-state"><p>{error}</p></div>
-          ) : null}
-
-          {!loading && !error && kit ? (
-            <>
-              <section className="drumkit-detail-header">
-                <div className="drumkit-detail-top">
-                  <div className="drumkit-detail-cover">
-                    {kit.cover_url ? (
-                      <img src={kit.cover_url} alt={kitTitle} />
+      {!loading && !error && kit ? (
+        <>
+          <section className="drumkit-detail-header">
+            <div className="drumkit-detail-top">
+              <div className="drumkit-detail-cover">
+                {kit.cover_url ? (
+                  <img src={kit.cover_url} alt={kitTitle} />
+                ) : (
+                  <span className="drumkit-detail-cover-fallback">
+                    {kitTitle.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="drumkit-detail-info">
+                <Link to="/drum-kits" className="drumkit-back-link">← Back to kits</Link>
+                <div className="drumkit-detail-title-row">
+                  <h1>{kitTitle}</h1>
+                </div>
+                <p className="drumkit-detail-meta">
+                  {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kitFilesCount} files
+                </p>
+                {kit.description ? <p className="drumkit-detail-description">{kit.description}</p> : null}
+                {kit.download_url ? (
+                  <div className="drumkit-detail-actions">
+                    {isAuthenticated ? (
+                      <a href={kit.download_url} className="btn btn-primary drumkit-download-btn">Download Kit</a>
                     ) : (
-                      <span className="drumkit-detail-cover-fallback">
-                        {kitTitle.slice(0, 2).toUpperCase()}
-                      </span>
+                      <Link to="/login" className="btn btn-secondary drumkit-download-btn">Login</Link>
                     )}
                   </div>
-                  <div className="drumkit-detail-info">
-                    <Link to="/drum-kits" className="drumkit-back-link">← Back to kits</Link>
-                    <div className="drumkit-detail-title-row">
-                      <h1>{kitTitle}</h1>
-                    </div>
-                    <p className="drumkit-detail-meta">
-                      {kit.author ? `by ${kit.author}` : 'Unknown author'} • {kit.genre_display || kit.genre || 'Other'} • {kitFilesCount} files
-                    </p>
-                    {kit.description ? <p className="drumkit-detail-description">{kit.description}</p> : null}
-                    {kit.download_url ? (
-                      <div className="drumkit-detail-actions">
-                        {isAuthenticated ? (
-                          <a href={kit.download_url} className="btn btn-primary drumkit-download-btn">Download Kit</a>
-                        ) : (
-                          <Link to="/login" className="btn btn-secondary drumkit-download-btn">Login</Link>
-                        )}
+                ) : null}
+              </div>
+            </div>
+          </section>
+
+          <section className="drumkit-browser">
+            <aside className="drumkit-sidebar">
+              <button
+                type="button"
+                className={`drumkit-folder-btn ${selectedFolder === '' ? 'active' : ''}`}
+                onClick={() => handleSelectFolder('')}
+              >
+                Root
+              </button>
+              <div className="drumkit-folder-tree">
+                {renderFolderNodes(folderTree, selectedFolder, handleSelectFolder)}
+              </div>
+            </aside>
+
+            <div className="drumkit-files">
+              <header className="drumkit-files-header">
+                <h2>{selectedFolder || 'Root'}</h2>
+                <span>{visibleFiles.length} files</span>
+              </header>
+
+              {visibleFiles.length ? (
+                <div className="drumkit-file-list">
+                  {visibleFiles.map(file => (
+                    <button
+                      type="button"
+                      className={`drumkit-file-row ${playingFileId === file.id ? 'playing' : ''}`}
+                      key={file.id}
+                      onClick={() => handleTogglePlay(file)}
+                    >
+                      <div className="drumkit-file-meta">
+                        <p className="drumkit-file-name">{file.name}</p>
+                        <p className="drumkit-file-path">{file.relative_path}</p>
                       </div>
-                    ) : null}
-                  </div>
+                      <div className="drumkit-file-side">
+                        <span className="drumkit-file-state">
+                          {playingFileId === file.id ? 'Playing' : 'Click to play'}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </section>
-
-              <section className="drumkit-browser">
-                <aside className="drumkit-sidebar">
-                  <button
-                    type="button"
-                    className={`drumkit-folder-btn ${selectedFolder === '' ? 'active' : ''}`}
-                    onClick={() => handleSelectFolder('')}
-                  >
-                    Root
-                  </button>
-                  <div className="drumkit-folder-tree">
-                    {renderFolderNodes(folderTree, selectedFolder, handleSelectFolder)}
-                  </div>
-                </aside>
-
-                <div className="drumkit-files">
-                  <header className="drumkit-files-header">
-                    <h2>{selectedFolder || 'Root'}</h2>
-                    <span>{visibleFiles.length} files</span>
-                  </header>
-
-                  {visibleFiles.length ? (
-                    <div className="drumkit-file-list">
-                      {visibleFiles.map(file => (
-                        <button
-                          type="button"
-                          className={`drumkit-file-row ${playingFileId === file.id ? 'playing' : ''}`}
-                          key={file.id}
-                          onClick={() => handleTogglePlay(file)}
-                        >
-                          <div className="drumkit-file-meta">
-                            <p className="drumkit-file-name">{file.name}</p>
-                            <p className="drumkit-file-path">{file.relative_path}</p>
-                          </div>
-                          <div className="drumkit-file-side">
-                            <span className="drumkit-file-state">
-                              {playingFileId === file.id ? 'Playing' : 'Click to play'}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="empty-state">
-                      <p>No audio files in this folder.</p>
-                    </div>
-                  )}
+              ) : (
+                <div className="empty-state">
+                  <p>No audio files in this folder.</p>
                 </div>
-              </section>
-            </>
-          ) : null}
-        </main>
-      </div>
-
-      <footer className="footer">
-        <div className="footer-bottom">
-          <p>&copy; 2025 SoundWave. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+              )}
+            </div>
+          </section>
+        </>
+      ) : null}
+    </CatalogPageLayout>
   );
 }

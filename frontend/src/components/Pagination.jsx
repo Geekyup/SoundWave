@@ -1,4 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
+import { stopAllMediaPlayers } from '../media-player/runtime.js';
+import { patchSearchParams } from '../utils/searchParams.js';
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -34,12 +36,8 @@ export default function Pagination({ count, isLoading = false }) {
 
   const goToPage = page => {
     if (page === currentPage) return;
-    if (typeof window !== 'undefined' && typeof window.__swStopAll === 'function') {
-      window.__swStopAll({ destroy: true });
-    }
-    const next = new URLSearchParams(searchParams);
-    next.set('page', String(page));
-    setSearchParams(next);
+    stopAllMediaPlayers({ destroy: true });
+    setSearchParams(patchSearchParams(searchParams, { page }));
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(scrollToCatalogTop);
     } else {

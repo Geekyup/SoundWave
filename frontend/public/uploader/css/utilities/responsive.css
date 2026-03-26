@@ -1,0 +1,46 @@
+@media (max-width: 768px) {
+    .upload-page {
+        padding: 14px;
+    }
+
+    .upload-page .upload-container {
+        padding: 18px;
+    }
+
+    .upload-page .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .upload-page .submit-section {
+        flex-direction: column;
+    }
+
+    .upload-page .upload-tabs {
+        gap: 6px;
+    }
+
+    .upload-page .file-input-label {
+        min-height: 120px;
+        padding: 14px;
+    }
+
+    .upload-page .select-options {
+        max-height: 260px;
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-page .upload-container {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .upload-page .upload-tabs {
+        flex-direction: column;
+    }
+
+    .upload-page .upload-meta-item {
+        width: 100%;
+        text-align: center;
+    }
+}

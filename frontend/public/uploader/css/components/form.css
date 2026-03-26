@@ -1,0 +1,68 @@
+.upload-page .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 14px;
+}
+
+.upload-page .form-group {
+    margin: 0;
+}
+
+.upload-page .form-group-full {
+    grid-column: 1 / -1;
+}
+
+.upload-page .form-label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--upload-text);
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+}
+
+.upload-page .required {
+    color: var(--upload-error);
+    margin-left: 4px;
+}
+
+.upload-page .input-wrapper {
+    position: relative;
+}
+
+.upload-page .input-wrapper input[type="text"],
+.upload-page .input-wrapper input[type="number"] {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--upload-border);
+    background: var(--upload-bg);
+    color: var(--upload-text);
+    font-size: 0.94rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.upload-page .input-wrapper input[type="text"]::placeholder,
+.upload-page .input-wrapper input[type="number"]::placeholder {
+    color: var(--upload-text-muted);
+}
+
+.upload-page .input-wrapper input[type="text"]:focus,
+.upload-page .input-wrapper input[type="number"]:focus {
+    outline: none;
+    border-color: var(--upload-accent);
+    box-shadow: 0 0 0 3px rgba(107, 127, 247, 0.18);
+    background: var(--upload-surface);
+}
+
+.upload-page .input-wrapper input[type="number"]::-webkit-outer-spin-button,
+.upload-page .input-wrapper input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.upload-page .input-wrapper input[type="number"] {
+    -moz-appearance: textfield;
+}

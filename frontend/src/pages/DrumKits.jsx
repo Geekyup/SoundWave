@@ -3,19 +3,27 @@ import { Link, useSearchParams } from 'react-router-dom';
 
 import { getAccessToken } from '../api/client.js';
 import { listDrumKits } from '../api/drumKits.js';
+import CatalogPageLayout from '../components/CatalogPageLayout.jsx';
+import DrumKitCard from '../components/DrumKitCard.jsx';
+import { DrumKitSkeletonGrid } from '../components/LibrarySkeletons.jsx';
 import Pagination from '../components/Pagination.jsx';
-import SiteHeader from '../components/SiteHeader.jsx';
+import { patchSearchParams } from '../utils/searchParams.js';
 
 export default function DrumKits() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [searchText, setSearchText] = useState('');
   const [kits, setKits] = useState([]);
   const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const isAuthenticated = Boolean(getAccessToken());
 
   const page = searchParams.get('page') || '1';
   const query = searchParams.get('q') || '';
+
+  useEffect(() => {
+    setSearchText(query);
+  }, [query]);
 
   useEffect(() => {
     let active = true;
@@ -46,119 +54,97 @@ export default function DrumKits() {
     };
   }, [page, query]);
 
-  const handleSearchSubmit = e => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const value = (formData.get('q') || '').toString().trim();
-    const next = new URLSearchParams(searchParams);
-    if (value) {
-      next.set('q', value);
-    } else {
-      next.delete('q');
-    }
-    next.set('page', '1');
-    setSearchParams(next, { replace: true });
+  const handleSearchSubmit = event => {
+    event.preventDefault();
+    setSearchParams(
+      patchSearchParams(searchParams, {
+        q: searchText.trim() || null,
+        page: '1',
+      }),
+      { replace: true },
+    );
   };
 
   return (
-    <div className="page-wrapper">
-      <SiteHeader
-        active="drum-kits"
-        searchContent={(
-          <form onSubmit={handleSearchSubmit}>
-            <input
-              type="text"
-              name="q"
-              defaultValue={query}
-              placeholder="Search drum kits..."
-            />
-          </form>
-        )}
-      />
+    <CatalogPageLayout
+      active="drum-kits"
+      contentId="catalog"
+      mainClassName="drumkits-main"
+      searchContent={(
+        <form onSubmit={handleSearchSubmit}>
+          <input
+            type="text"
+            name="q"
+            value={searchText}
+            onChange={event => setSearchText(event.target.value)}
+            placeholder="Search drum kits..."
+          />
+        </form>
+      )}
+    >
+      <section className="section">
+        <header className="section-header section-header--flex">
+          <h2>Drum Kits</h2>
+          <span className="drumkits-count">{count} kits</span>
+        </header>
 
-      <div className="content-wrapper">
-        <main className="main-content drumkits-main">
-          <section className="section">
-            <header className="section-header section-header--flex">
-              <h2>Drum Kits</h2>
-              <span className="drumkits-count">{count} kits</span>
-            </header>
+        {loading ? (
+          <>
+            <div className="drumkits-grid">
+              <DrumKitSkeletonGrid />
+            </div>
+            <div className="pagination-slot" aria-hidden="true">
+              <div className="pagination-skeleton"></div>
+            </div>
+          </>
+        ) : null}
 
-            {loading ? (
-              <div className="empty-state"><p>Loading drum kits...</p></div>
-            ) : null}
-            {error ? (
-              <div className="empty-state"><p>{error}</p></div>
-            ) : null}
+        {error ? (
+          <div className="empty-state"><p>{error}</p></div>
+        ) : null}
 
-            {!loading && !error ? (
-              kits.length ? (
-                <>
-                  <div className="drumkits-grid">
-                    {kits.map(kit => (
-                      <article className="drumkit-card" key={kit.id}>
-                        <Link to={`/drum-kits/${kit.slug}`} className="drumkit-card-link">
-                          <div className="drumkit-cover">
-                            {kit.cover_url ? (
-                              <img src={kit.cover_url} alt={kit.title} loading="lazy" />
-                            ) : (
-                              <span className="drumkit-cover-fallback">
-                                {kit.title.slice(0, 2).toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <div className="drumkit-card-body">
-                            <div className="drumkit-title-row">
-                              <h3>{kit.title}</h3>
-                              <span className="drumkit-genre">{kit.genre_display || kit.genre || 'Other'}</span>
-                            </div>
-                            <p className="drumkit-meta">
-                              {kit.author ? `by ${kit.author}` : 'Unknown author'}
-                            </p>
-                          </div>
-                        </Link>
-                        {isAuthenticated ? (
-                          <a
-                            href={kit.download_url}
-                            className="drumkit-download-btn"
-                            title="Download drum kit"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                              <path d="M12 3v14" />
-                              <path d="M7 12l5 5 5-5" />
-                              <path d="M5 19h14" />
-                            </svg>
-                            Download
-                          </a>
-                        ) : (
-                          <Link
-                            to="/login"
-                            className="drumkit-download-btn auth-required-download"
-                            title="Login to download"
-                          >
-                            Login
-                          </Link>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                  <Pagination count={count} />
-                </>
-              ) : (
-                <div className="empty-state">
-                  <p>No drum kits uploaded yet.</p>
-                </div>
-              )
-            ) : null}
-          </section>
-        </main>
-      </div>
-
-      <footer className="footer">
-        <div className="footer-bottom">
-          <p>&copy; 2025 SoundWave. All rights reserved.</p>
-        </div>
-      </footer>
-    </div>
+        {!loading && !error ? (
+          kits.length ? (
+            <>
+              <div className="drumkits-grid">
+                {kits.map(kit => (
+                  <DrumKitCard
+                    key={kit.id}
+                    kit={kit}
+                    action={isAuthenticated ? (
+                      <a
+                        href={kit.download_url}
+                        className="drumkit-download-btn"
+                        title="Download drum kit"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M12 3v14" />
+                          <path d="M7 12l5 5 5-5" />
+                          <path d="M5 19h14" />
+                        </svg>
+                        Download
+                      </a>
+                    ) : (
+                      <Link
+                        to="/login"
+                        className="drumkit-download-btn auth-required-download"
+                        title="Login to download"
+                      >
+                        Login
+                      </Link>
+                    )}
+                  />
+                ))}
+              </div>
+              <Pagination count={count} isLoading={loading} />
+            </>
+          ) : (
+            <div className="empty-state">
+              <p>No drum kits uploaded yet.</p>
+            </div>
+          )
+        ) : null}
+      </section>
+    </CatalogPageLayout>
   );
 }

@@ -4,51 +4,70 @@ from mutagen import File as MutagenFile
 
 from .models import Loop, Sample
 
-
 LOOP_MAX_DURATION_SECONDS = 300
 SAMPLE_MAX_DURATION_SECONDS = 10
 
 
-def validate_audio_duration_max(max_seconds):
-    """Validator for checking maximum audio file duration"""
-    def validator(audio_file):
+def format_duration_label(duration_in_seconds):
+    whole_seconds = max(int(duration_in_seconds), 0)
+    minutes, seconds = divmod(whole_seconds, 60)
+    return f'{minutes}:{seconds:02d}'
+
+
+def build_audio_files_help_text(max_duration_seconds):
+    if max_duration_seconds < 60:
+        duration_label = f'{int(max_duration_seconds)} seconds'
+    else:
+        minutes, seconds = divmod(int(max_duration_seconds), 60)
+        duration_label = f'{minutes} minute' if minutes == 1 else f'{minutes} minutes'
+        if seconds:
+            duration_label = f'{duration_label} {seconds} seconds'
+
+    return f'You can choose multiple files at once. Max duration: {duration_label} per file.'
+
+
+def get_audio_duration_seconds(audio_file):
+    audio_file.seek(0)
+
+    try:
+        audio_metadata = MutagenFile(audio_file)
+    finally:
+        audio_file.seek(0)
+
+    if audio_metadata is None:
+        raise ValidationError(
+            'Failed to read audio file. Please ensure the file is a valid audio file.',
+        )
+
+    duration_in_seconds = getattr(getattr(audio_metadata, 'info', None), 'length', None)
+    if duration_in_seconds is None:
+        raise ValidationError('Failed to determine audio file duration.')
+
+    return duration_in_seconds
+
+
+def build_audio_duration_limit_validator(max_duration_seconds):
+    def validate_audio_duration(audio_file):
         if not audio_file:
             return
-        
-        audio_file.seek(0)
-        
+
         try:
-            audio = MutagenFile(audio_file)
-            
-            if audio is None:
-                raise ValidationError('Failed to read audio file. Please ensure the file is a valid audio file.')
-            
-            duration = audio.info.length if hasattr(audio.info, 'length') else None
-            
-            if duration is None:
-                raise ValidationError('Failed to determine audio file duration.')
-            
-            if duration > max_seconds:
-                minutes = int(max_seconds // 60)
-                seconds = int(max_seconds % 60)
-                actual_minutes = int(duration // 60)
-                actual_seconds = int(duration % 60)
-                raise ValidationError(
-                    f'Audio file duration ({actual_minutes}:{actual_seconds:02d}) exceeds the maximum allowed '
-                    f'({minutes}:{seconds:02d}).'
-                )
+            duration_in_seconds = get_audio_duration_seconds(audio_file)
         except ValidationError:
             raise
-        except Exception as e:
-            # If failed to read file, skip validation
-            # (format may not be supported or file is corrupted)
-            # In production, error logging can be added
-            pass
-        finally:
-            # Return file to beginning
-            audio_file.seek(0)
-    
-    return validator
+        except Exception:
+            # Unsupported or corrupted files are handled later by upload/storage logic.
+            return
+
+        if duration_in_seconds <= max_duration_seconds:
+            return
+
+        raise ValidationError(
+            f'Audio file duration ({format_duration_label(duration_in_seconds)}) exceeds the maximum allowed '
+            f'({format_duration_label(max_duration_seconds)}).'
+        )
+
+    return validate_audio_duration
 
 
 class MultipleAudioFileInput(forms.ClearableFileInput):
@@ -65,19 +84,23 @@ class MultipleAudioFileField(forms.FileField):
         )
         super().__init__(*args, **kwargs)
 
-    def clean(self, data, initial=None):
-        if not data:
+    def clean(self, uploaded_files_data, initial=None):
+        if not uploaded_files_data:
             if self.required:
                 raise ValidationError(self.error_messages['required'], code='required')
             return []
 
-        files = data if isinstance(data, (list, tuple)) else [data]
+        uploaded_files = (
+            uploaded_files_data
+            if isinstance(uploaded_files_data, (list, tuple))
+            else [uploaded_files_data]
+        )
         cleaned_files = []
 
-        for file_data in files:
-            if not file_data:
+        for uploaded_file in uploaded_files:
+            if not uploaded_file:
                 continue
-            cleaned_files.append(super().clean(file_data, initial))
+            cleaned_files.append(super().clean(uploaded_file, initial))
 
         if not cleaned_files and self.required:
             raise ValidationError(self.error_messages['required'], code='required')
@@ -85,20 +108,7 @@ class MultipleAudioFileField(forms.FileField):
         return cleaned_files
 
 
-class SampleBulkUploadAdminForm(forms.Form):
-    audio_files = MultipleAudioFileField(
-        label='Audio files',
-        required=True,
-        help_text='You can choose multiple files at once. Max duration: 10 seconds per file.',
-    )
-    sample_type = forms.ChoiceField(
-        label='Sample type',
-        choices=Sample.SAMPLE_TYPE_CHOICES,
-    )
-    genre = forms.ChoiceField(
-        label='Genre',
-        choices=Sample._meta.get_field('genre').choices,
-    )
+class BaseBulkUploadAdminForm(forms.Form):
     author = forms.CharField(
         label='Author',
         max_length=100,
@@ -106,29 +116,49 @@ class SampleBulkUploadAdminForm(forms.Form):
         help_text='Optional. If empty, current admin username will be used.',
     )
 
+    max_duration_seconds = None
+
     def clean_audio_files(self):
-        files = self.cleaned_data['audio_files']
-        validator = validate_audio_duration_max(SAMPLE_MAX_DURATION_SECONDS)
-        errors = []
+        uploaded_files = self.cleaned_data['audio_files']
+        duration_validator = build_audio_duration_limit_validator(self.max_duration_seconds)
+        validation_errors = []
 
-        for audio_file in files:
+        for uploaded_file in uploaded_files:
             try:
-                validator(audio_file)
-            except ValidationError as exc:
-                for message in exc.messages:
-                    errors.append(f'{audio_file.name}: {message}')
+                duration_validator(uploaded_file)
+            except ValidationError as validation_error:
+                for error_message in validation_error.messages:
+                    validation_errors.append(f'{uploaded_file.name}: {error_message}')
 
-        if errors:
-            raise ValidationError(errors)
+        if validation_errors:
+            raise ValidationError(validation_errors)
 
-        return files
+        return uploaded_files
 
 
-class LoopBulkUploadAdminForm(forms.Form):
+class SampleBulkUploadAdminForm(BaseBulkUploadAdminForm):
     audio_files = MultipleAudioFileField(
         label='Audio files',
         required=True,
-        help_text='You can choose multiple files at once. Max duration: 5 minutes per file.',
+        help_text=build_audio_files_help_text(SAMPLE_MAX_DURATION_SECONDS),
+    )
+    sample_type = forms.ChoiceField(
+        label='Sample type',
+        choices=Sample._meta.get_field('sample_type').choices,
+    )
+    genre = forms.ChoiceField(
+        label='Genre',
+        choices=Sample._meta.get_field('genre').choices,
+    )
+
+    max_duration_seconds = SAMPLE_MAX_DURATION_SECONDS
+
+
+class LoopBulkUploadAdminForm(BaseBulkUploadAdminForm):
+    audio_files = MultipleAudioFileField(
+        label='Audio files',
+        required=True,
+        help_text=build_audio_files_help_text(LOOP_MAX_DURATION_SECONDS),
     )
     genre = forms.ChoiceField(
         label='Genre',
@@ -139,28 +169,5 @@ class LoopBulkUploadAdminForm(forms.Form):
         required=False,
         help_text='Applied to all uploaded loops.',
     )
-    author = forms.CharField(
-        label='Author',
-        max_length=100,
-        required=False,
-        help_text='Optional. If empty, current admin username will be used.',
-    )
 
-    def clean_audio_files(self):
-        files = self.cleaned_data['audio_files']
-        validator = validate_audio_duration_max(LOOP_MAX_DURATION_SECONDS)
-        errors = []
-
-        for audio_file in files:
-            try:
-                validator(audio_file)
-            except ValidationError as exc:
-                for message in exc.messages:
-                    errors.append(f'{audio_file.name}: {message}')
-
-        if errors:
-            raise ValidationError(errors)
-
-        return files
-
-
+    max_duration_seconds = LOOP_MAX_DURATION_SECONDS

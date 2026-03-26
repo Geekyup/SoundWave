@@ -1,6 +1,9 @@
-import django_filters
 from datetime import timedelta
+
+import django_filters
+
 from django.utils import timezone
+
 from apps.uploader.models import Loop, Sample
 
 
@@ -11,19 +14,20 @@ class LoopFilter(django_filters.FilterSet):
     keywords = django_filters.CharFilter(field_name='keywords', lookup_expr='icontains')
     date_window = django_filters.CharFilter(method='filter_date_window')
 
-    DATE_WINDOWS = {
+    DATE_WINDOW_DURATIONS = {
         '24h': timedelta(hours=24),
         '48h': timedelta(hours=48),
         'week': timedelta(days=7),
         'month': timedelta(days=30),
     }
 
-    def filter_date_window(self, queryset, name, value):
+    def filter_date_window(self, queryset, _field_name, value):
         window_key = (value or '').strip().lower()
-        delta = self.DATE_WINDOWS.get(window_key)
-        if not delta:
+        time_window = self.DATE_WINDOW_DURATIONS.get(window_key)
+        if not time_window:
             return queryset
-        return queryset.filter(uploaded_at__gte=timezone.now() - delta)
+
+        return queryset.filter(uploaded_at__gte=timezone.now() - time_window)
 
     class Meta:
         model = Loop

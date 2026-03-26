@@ -7,7 +7,7 @@ class IsAuthorOrStaffOrReadOnly(BasePermission):
     Read actions are always allowed.
     """
 
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, _view, instance):
         if request.method in SAFE_METHODS:
             return True
 
@@ -18,8 +18,8 @@ class IsAuthorOrStaffOrReadOnly(BasePermission):
         if user.is_staff:
             return True
 
-        author = getattr(obj, 'author', '')
-        if not isinstance(author, str):
+        author_name = getattr(instance, 'author', '')
+        if not isinstance(author_name, str):
             return False
 
-        return author.strip().lower() == user.username.strip().lower()
+        return author_name.strip().lower() == user.username.strip().lower()

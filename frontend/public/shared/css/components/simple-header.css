@@ -1,0 +1,4 @@
+.simple-page-shell {
+    --header-row-height: var(--header-row-height-compact);
+    --header-height: var(--header-row-height);
+}

@@ -1,98 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { logout } from '../api/auth.js';
 import { getAccessToken } from '../api/client.js';
-import { listDrumKits } from '../api/drumKits.js';
-import { listLoops } from '../api/loops.js';
-import { getMe } from '../api/me.js';
-import { listSamples } from '../api/samples.js';
-
-const MAX_PROFILE_FETCH_PAGES = 30;
-
-function formatDate(value) {
-  if (!value) return '-';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return '-';
-  return parsed.toLocaleDateString();
-}
+import SimpleBrandHeader from '../components/SimpleBrandHeader.jsx';
+import { getProfileSummary } from '../api/profile.js';
+import { formatDate } from '../utils/date.js';
 
 function getInitial(username) {
   const raw = (username || '').trim();
   return raw ? raw.charAt(0).toUpperCase() : 'U';
-}
-
-function normalizeAuthor(value) {
-  return (value || '').trim().toLowerCase();
-}
-
-function getItemTimestamp(item) {
-  return item?.uploaded_at || item?.created_at || '';
-}
-
-function sumDownloads(items) {
-  return items.reduce((total, item) => total + (item.downloads || 0), 0);
-}
-
-function getTopGenre(items) {
-  const map = new Map();
-  items.forEach(item => {
-    const genre = (item.genre_display || '').trim();
-    if (!genre) return;
-    map.set(genre, (map.get(genre) || 0) + 1);
-  });
-  let bestGenre = '';
-  let bestCount = 0;
-  map.forEach((count, genre) => {
-    if (count > bestCount) {
-      bestGenre = genre;
-      bestCount = count;
-    }
-  });
-  return bestGenre || '-';
-}
-
-function getLatestDate(items) {
-  let latest = '';
-  items.forEach(item => {
-    const raw = getItemTimestamp(item);
-    if (!raw) return;
-    if (!latest || new Date(raw) > new Date(latest)) {
-      latest = raw;
-    }
-  });
-  return latest;
-}
-
-function countRecentUploads(items, days = 30) {
-  const now = Date.now();
-  const threshold = now - (days * 24 * 60 * 60 * 1000);
-  return items.filter(item => {
-    const date = new Date(getItemTimestamp(item)).getTime();
-    return Number.isFinite(date) && date >= threshold;
-  }).length;
-}
-
-async function fetchAllAuthorItems(listFn, username, baseParams = {}) {
-  const normalized = normalizeAuthor(username);
-  if (!normalized) return [];
-
-  const all = [];
-  let page = 1;
-
-  for (let index = 0; index < MAX_PROFILE_FETCH_PAGES; index += 1) {
-    const data = await listFn({
-      ...baseParams,
-      author: username,
-      page,
-    });
-    const chunk = Array.isArray(data?.results) ? data.results : [];
-    all.push(...chunk.filter(item => normalizeAuthor(item.author) === normalized));
-    if (!data?.next || chunk.length === 0) break;
-    page += 1;
-  }
-
-  return all;
 }
 
 function StatCard({ icon, label, value }) {
@@ -112,61 +29,17 @@ function StatCard({ icon, label, value }) {
 export default function Profile() {
   const { username } = useParams();
   const navigate = useNavigate();
-  const [me, setMe] = useState(null);
-  const [meLoading, setMeLoading] = useState(false);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [loops, setLoops] = useState([]);
-  const [samples, setSamples] = useState([]);
-  const [drumKits, setDrumKits] = useState([]);
 
   const token = getAccessToken();
   const isAuth = Boolean(token);
   const requestedUsername = (username || '').trim();
 
   useEffect(() => {
-    if (!isAuth) {
-      setMe(null);
-      setMeLoading(false);
-      return;
-    }
-
-    let active = true;
-    setMeLoading(true);
-    getMe()
-      .then(profile => {
-        if (!active) return;
-        setMe(profile);
-      })
-      .catch(() => {
-        if (!active) return;
-        logout();
-        setMe(null);
-      })
-      .finally(() => {
-        if (!active) return;
-        setMeLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [isAuth]);
-
-  const profileUsername = useMemo(() => {
-    if (requestedUsername) return requestedUsername;
-    return me?.username || '';
-  }, [requestedUsername, me]);
-
-  const isOwnProfile = Boolean(
-    me?.username && profileUsername && me.username.toLowerCase() === profileUsername.toLowerCase(),
-  );
-
-  useEffect(() => {
-    if (!profileUsername) {
-      setLoops([]);
-      setSamples([]);
-      setDrumKits([]);
+    if (!requestedUsername && !isAuth) {
+      setSummary(null);
       setLoading(false);
       return;
     }
@@ -174,28 +47,19 @@ export default function Profile() {
     let active = true;
     setLoading(true);
     setError('');
+    setSummary(null);
 
-    const fetchData = async () => {
-      const listOwnedDrumKits = params => listDrumKits(params, { skipAuth: false });
-      const [authorLoops, authorSamples, authorDrumKits] = await Promise.all([
-        fetchAllAuthorItems(listLoops, profileUsername, { ordering: '-uploaded_at', include_waveform: '1' }),
-        fetchAllAuthorItems(listSamples, profileUsername, { ordering: '-uploaded_at', include_waveform: '1' }),
-        fetchAllAuthorItems(listOwnedDrumKits, profileUsername, { ordering: '-created_at' }),
-      ]);
-
-      if (!active) return;
-      setLoops(authorLoops);
-      setSamples(authorSamples);
-      setDrumKits(authorDrumKits);
-    };
-
-    fetchData()
-      .catch(() => {
+    getProfileSummary(
+      requestedUsername ? { username: requestedUsername } : {},
+      { skipAuth: !isAuth },
+    )
+      .then(data => {
         if (!active) return;
-        setLoops([]);
-        setSamples([]);
-        setDrumKits([]);
-        setError('Failed to load profile data.');
+        setSummary(data);
+      })
+      .catch(err => {
+        if (!active) return;
+        setError(err.message || 'Failed to load profile data.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -204,13 +68,7 @@ export default function Profile() {
     return () => {
       active = false;
     };
-  }, [profileUsername]);
-
-  useEffect(() => {
-    if (window.__swInit) {
-      window.__swInit();
-    }
-  }, [loops, samples]);
+  }, [isAuth, requestedUsername]);
 
   if (!isAuth && !requestedUsername) {
     return (
@@ -228,60 +86,48 @@ export default function Profile() {
     );
   }
 
-  const displayUsername = profileUsername || 'User';
-  const profileBio = isOwnProfile ? (me?.bio || '').trim() : '';
-  const isPageLoading = loading || (!requestedUsername && isAuth && meLoading);
-  const totalLoops = loops.length;
-  const totalSamples = samples.length;
-  const totalDrumKits = drumKits.length;
-  const totalUploads = totalLoops + totalSamples + totalDrumKits;
+  const isOwnProfile = Boolean(summary?.is_own_profile);
+  const displayUsername = summary?.username || requestedUsername || 'User';
+  const profileBio = isOwnProfile ? (summary?.bio || '').trim() : '';
+  const counts = summary?.counts || {};
+  const totalLoops = counts.loop || 0;
+  const totalSamples = counts.sample || 0;
+  const totalDrumKits = counts.drumkit || 0;
+  const totalUploads = summary?.total_uploads || 0;
   const hasUploads = totalUploads > 0;
-  const allItems = [...loops, ...samples, ...drumKits];
-  const totalDownloads = sumDownloads(loops) + sumDownloads(samples) + sumDownloads(drumKits);
-  const uploadsLast30 = countRecentUploads(allItems, 30);
-  const latestUploadAt = getLatestDate(allItems);
-  const topGenre = getTopGenre(allItems);
-  const topLoops = useMemo(
-    () => [...loops].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
-    [loops],
-  );
-  const topSamples = useMemo(
-    () => [...samples].sort((a, b) => (b.downloads || 0) - (a.downloads || 0)).slice(0, 5),
-    [samples],
-  );
+  const totalDownloads = summary?.total_downloads || 0;
+  const uploadsLast30 = summary?.uploads_last_30 || 0;
+  const latestUploadAt = summary?.latest_upload_at || '';
+  const topGenre = summary?.top_genre || '-';
+  const topLoops = summary?.top_loops || [];
+  const topSamples = summary?.top_samples || [];
 
   return (
-    <div className="page-wrapper profile-page">
-      <header className="header">
-        <div className="header-inner">
-          <div className="logo">
-            <Link to="/">SoundWave</Link>
-          </div>
-        </div>
-      </header>
+    <div className="page-wrapper profile-page simple-page-shell">
+      <SimpleBrandHeader />
 
       <div className="content-wrapper profile-compact-content">
         <main className="main-content profile-compact-main">
-          {isPageLoading ? (
+          {loading ? (
             <div className="profile-compact-card empty-state">
               <p>Loading profile...</p>
             </div>
           ) : null}
 
-          {!isPageLoading && error ? (
+          {!loading && error ? (
             <div className="profile-compact-card empty-state">
               <p>{error}</p>
               <Link to="/" className="btn btn-secondary">Back to Home</Link>
             </div>
           ) : null}
 
-          {!isPageLoading && !error ? (
+          {!loading && !error ? (
             <>
               <section className={`profile-compact-card profile-summary ${isOwnProfile ? 'is-own' : ''}`}>
                 <div className={`profile-summary-main ${isOwnProfile ? 'has-about' : ''}`}>
                   <div className="profile-summary-avatar">
-                    {isOwnProfile && me?.avatar_url ? (
-                      <img src={me.avatar_url} alt={`${displayUsername} avatar`} />
+                    {isOwnProfile && summary?.avatar_url ? (
+                      <img src={summary.avatar_url} alt={`${displayUsername} avatar`} />
                     ) : (
                       <span>{getInitial(displayUsername)}</span>
                     )}

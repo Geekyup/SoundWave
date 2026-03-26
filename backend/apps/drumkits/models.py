@@ -43,6 +43,13 @@ class DrumKit(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Drum kit'
         verbose_name_plural = 'Drum kits'
+        indexes = [
+            models.Index(fields=['author'], name='drmkit_author_idx'),
+            models.Index(fields=['-created_at'], name='drmkit_created_idx'),
+            models.Index(fields=['-downloads'], name='drmkit_downloads_idx'),
+            models.Index(fields=['author', '-created_at'], name='drmkit_author_cr_idx'),
+            models.Index(fields=['is_public', '-created_at'], name='drmkit_public_cr_idx'),
+        ]
 
     def __str__(self):
         return self.title
