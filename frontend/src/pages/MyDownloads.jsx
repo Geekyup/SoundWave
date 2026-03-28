@@ -75,7 +75,7 @@ export default function MyDownloads() {
     }
 
     scheduleMediaPlayerInit();
-  }, [activeType, items.length]);
+  }, [activeType, items]);
 
   const setType = nextType => {
     setSearchParams(

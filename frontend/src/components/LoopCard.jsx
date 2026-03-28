@@ -39,6 +39,7 @@ export default function LoopCard({
   onKeywordClick = null,
 }) {
   const resolvedAuthorName = (authorName || loop.author || '').trim() || 'Unknown';
+  const waveformFill = 'rgba(86, 94, 182, 0.82)';
 
   return (
     <div
@@ -70,8 +71,16 @@ export default function LoopCard({
       </div>
 
       <div className="card-waveform">
-        <div className="waveform-container" id={`waveform-${loop.id}`}>
-          <StaticWaveform peaks={loop.waveform?.peaks} barsCount={24} />
+        <div className={cx('waveform-container', 'waveform-shell')} id={`waveform-${loop.id}`}>
+          <div className="waveform-base-mask">
+            <StaticWaveform
+              className="static-waveform--base"
+              barsCount={168}
+              fill={waveformFill}
+              variant="monotone"
+            />
+          </div>
+          <div className="waveform-live-layer" data-waveform-live aria-hidden="true"></div>
         </div>
       </div>
 

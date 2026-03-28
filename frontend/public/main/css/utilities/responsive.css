@@ -30,6 +30,13 @@
 
     .sample-square {
         --sample-square-pad: 1.5rem;
+        min-height: 364px;
+    }
+
+    .sample-waveform-container {
+        height: 92px;
+        flex-basis: 92px;
+        min-height: 92px;
     }
 }
 
@@ -109,6 +116,13 @@
 
     .sample-square {
         --sample-square-pad: 1.2rem;
+        min-height: 336px;
+    }
+
+    .sample-waveform-container {
+        height: 80px;
+        flex-basis: 80px;
+        min-height: 80px;
     }
 
     .sample-title {
@@ -230,6 +244,13 @@
 
     .sample-square {
         --sample-square-pad: 1rem;
+        min-height: 312px;
+    }
+
+    .sample-waveform-container {
+        height: 68px;
+        flex-basis: 68px;
+        min-height: 68px;
     }
 
     .sample-controls .sample-play-btn,

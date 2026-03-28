@@ -101,7 +101,7 @@ export default function ManageUploads() {
     }
 
     scheduleMediaPlayerInit();
-  }, [activeTab, items.length]);
+  }, [activeTab, items]);
 
   const totalUploads = counts.loop + counts.sample + counts.drumkit;
   const activeTabLabel = MANAGE_TABS.find(tab => tab.value === activeTab)?.label || 'Loops';

@@ -212,7 +212,7 @@ export default function Home({ tab }) {
         ? {}
         : { idleTimeout: 140, fallbackDelay: 16 },
     );
-  }, [isSamples, loops.length, loopsPageReady, samples.length]);
+  }, [isSamples, loops, loopsPageReady, samples]);
 
   const renderLoopCards = extraClassName => (
     <div className={`sample-grid ${extraClassName || ''}`.trim()}>

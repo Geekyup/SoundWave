@@ -20,9 +20,10 @@ const ICONS = {
 };
 
 const WS_OPTIONS = {
-  waveColor: 'rgba(107, 127, 247, 0.4)',
-  progressColor: 'rgba(107, 127, 247, 0.8)',
-  cursorColor: 'rgba(107, 127, 247, 1)',
+  waveColor: 'rgba(107, 127, 247, 0.74)',
+  progressColor: 'rgba(156, 171, 255, 0.98)',
+  cursorColor: 'rgba(188, 199, 255, 1)',
+  height: 'auto',
   barWidth: 3,
   barGap: 2,
   barHeight: 1.5,
@@ -30,6 +31,24 @@ const WS_OPTIONS = {
   normalize: true,
   interact: true,
   dragToSeek: true,
+};
+
+const LOOP_WS_OPTIONS = {
+  waveColor: 'rgba(86, 94, 182, 0.82)',
+  progressColor: 'rgba(109, 118, 215, 0.96)',
+  cursorColor: 'rgba(125, 135, 232, 1)',
+  barWidth: 3,
+  barGap: 3,
+  barHeight: 1.72,
+};
+
+const SAMPLE_WS_OPTIONS = {
+  waveColor: 'rgba(86, 94, 182, 0.82)',
+  progressColor: 'rgba(109, 118, 215, 0.96)',
+  cursorColor: 'rgba(125, 135, 232, 1)',
+  barWidth: 3,
+  barGap: 3,
+  barHeight: 1.68,
 };
 
 function applySeek(ws, ratio) {
@@ -87,6 +106,27 @@ function parseWaveformDuration(raw) {
   const value = Number(raw);
   if (!Number.isFinite(value) || value <= 0) return null;
   return value;
+}
+
+function getWaveformShell(card) {
+  return card?.querySelector?.('[id^="waveform-"]') || null;
+}
+
+function getWaveformLiveLayer(waveformShell) {
+  return waveformShell?.querySelector?.('[data-waveform-live]') || null;
+}
+
+function clearWaveformLiveLayer(waveformLiveLayer) {
+  if (!waveformLiveLayer) return;
+  if (typeof waveformLiveLayer.replaceChildren === 'function') {
+    waveformLiveLayer.replaceChildren();
+    return;
+  }
+  waveformLiveLayer.innerHTML = '';
+}
+
+function setWaveformLiveActive(meta, active) {
+  meta?.waveformEl?.classList.toggle('is-live-waveform-active', Boolean(active));
 }
 
 function setCardWaveformDataset(card, waveform) {
@@ -327,6 +367,7 @@ function pauseOthers(exceptPlayer) {
     activeMeta.userPaused = true;
     activeMeta.player.pause();
   }
+  setWaveformLiveActive(activeMeta, false);
   setButtonIcon(activeMeta.btn, false);
   currentPlayer = null;
   currentPlayerCardId = null;
@@ -341,6 +382,7 @@ function stopAllPlayback(options = {}) {
     stopPlayerCompletely(meta.player);
     meta.userPaused = true;
     meta.pendingPlay = false;
+    setWaveformLiveActive(meta, false);
     setButtonIcon(meta.btn, false);
     if (destroy) {
       destroyPlayer(cardId);
@@ -367,6 +409,7 @@ function destroyPlayer(cardId) {
   if (meta.waveformEl && meta.seekHandler) {
     meta.waveformEl.removeEventListener('pointerup', meta.seekHandler);
     meta.waveformEl.classList.remove('is-waveform-ready');
+    meta.waveformEl.classList.remove('is-live-waveform-active');
   }
 
   stopPlayerCompletely(meta.player, { unloadMedia: true });
@@ -376,6 +419,8 @@ function destroyPlayer(cardId) {
   } catch (_) {
     // Ignore destroy errors from already-disposed instances.
   }
+
+  clearWaveformLiveLayer(meta.waveformLiveEl);
 
   delete players[cardId];
   delete playersMeta[cardId];
@@ -399,6 +444,7 @@ function requestPlay(meta, { allowRetry = true, fromUserGesture = false } = {}) 
     }
     meta.pendingPlay = false;
     meta.userPaused = true;
+    setWaveformLiveActive(meta, false);
     setButtonIcon(btn, false);
     if (currentPlayer === player) {
       currentPlayer = null;
@@ -525,11 +571,14 @@ function initPlayer(card) {
 
   const cardId = card.dataset.cardId;
   const url = card.dataset.url;
-  const waveform = card.querySelector('[id^="waveform-"]');
-  if (!cardId || !url || !waveform) return;
+  const waveform = getWaveformShell(card);
+  const waveformLiveLayer = getWaveformLiveLayer(waveform);
+  if (!cardId || !url || !waveform || !waveformLiveLayer) return;
   const cachedPeaks = parseWaveformPeaks(card.dataset.waveformPeaks);
   const cachedDuration = parseWaveformDuration(card.dataset.waveformDuration);
   const hasCachedWaveform = Boolean(cachedPeaks && cachedPeaks.length);
+  const isLoopCard = card.dataset.kind === 'loops';
+  const isSampleCard = card.dataset.kind === 'samples';
 
   if (playersMeta[cardId]) {
     if (playersMeta[cardId].waveformEl === waveform) {
@@ -538,9 +587,15 @@ function initPlayer(card) {
     destroyPlayer(cardId);
   }
 
+  waveform.classList.remove('is-waveform-ready');
+  waveform.classList.remove('is-live-waveform-active');
+  clearWaveformLiveLayer(waveformLiveLayer);
+
   const wsConfig = {
     ...WS_OPTIONS,
-    container: waveform,
+    ...(isLoopCard ? LOOP_WS_OPTIONS : {}),
+    ...(isSampleCard ? SAMPLE_WS_OPTIONS : {}),
+    container: waveformLiveLayer,
     url,
     backend: 'WebAudio',
   };
@@ -576,6 +631,7 @@ function initPlayer(card) {
     player: ws,
     btn,
     waveformEl: waveform,
+    waveformLiveEl: waveformLiveLayer,
     seekHandler,
     isLoop: false,
     userPaused: false,
@@ -619,6 +675,7 @@ function initPlayer(card) {
     const meta = playersMeta[cardId];
     if (meta) {
       meta.isReady = true;
+      setWaveformLiveActive(meta, true);
     }
     pauseOthers(ws);
     currentPlayer = ws;
@@ -626,6 +683,10 @@ function initPlayer(card) {
     setButtonIcon(btn, true);
   });
   ws.on('pause', () => {
+    const meta = playersMeta[cardId];
+    if (meta) {
+      setWaveformLiveActive(meta, false);
+    }
     setButtonIcon(btn, false);
     if (currentPlayer === ws) {
       currentPlayer = null;

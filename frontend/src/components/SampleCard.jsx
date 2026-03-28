@@ -24,6 +24,7 @@ export default function SampleCard({
   secondaryAction = null,
 }) {
   const resolvedAuthorName = (authorName || sample.author || '').trim() || 'Unknown';
+  const waveformFill = 'rgba(86, 94, 182, 0.82)';
 
   return (
     <div
@@ -55,8 +56,17 @@ export default function SampleCard({
       </div>
 
       <div className="sample-waveform-container">
-        <div className="sample-waveform" id={`waveform-${sample.id}`}>
-          <StaticWaveform peaks={sample.waveform?.peaks} barsCount={52} />
+        <div className={cx('sample-waveform', 'waveform-shell')} id={`waveform-${sample.id}`}>
+          <div className="waveform-base-mask">
+            <StaticWaveform
+              className="static-waveform--base"
+              barsCount={48}
+              fill={waveformFill}
+              variant="monotone"
+              monotoneLevel="high"
+            />
+          </div>
+          <div className="waveform-live-layer" data-waveform-live aria-hidden="true"></div>
         </div>
       </div>
 
